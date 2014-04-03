@@ -17,7 +17,7 @@ url = 'http://instagram.com/' + str(sys.argv[1]) + '/'
 # check if Instagram username is valid
 req = urllib2.Request(url)
 try:
-	urllib2.urlopen(req)
+    urllib2.urlopen(req)
 except URLError, e:
     print e.code
     print e.read()
