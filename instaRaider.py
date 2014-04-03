@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding: utf-8
 """
 instaRaider.py
 
@@ -13,9 +12,6 @@ import re
 from time import sleep
 import urllib2
 
-# enter username
-url = 'http://instagram.com/USERNAME/'
-
 def getImageCount(userName):
     '''
     Given a userName, return number of photos posted to Instagram
@@ -27,8 +23,7 @@ def getImageCount(userName):
     #fix regular expression to match correct tag
     imageCount = re.search(r'counts\":{\"media\":[^\s<>"]\,' , str(response.read()))
 
-
-def loadInstagram():
+def loadInstagram(url):
     '''
     Using Selenium WebDriver, load Instagram page to get page source
     
@@ -63,13 +58,3 @@ def getPhotos(source):
         # print URL of full-resolution photo
         # TODO: Use urllib2 to download photo to folder
         print photoUrl
-
-'''
-To test, uncomment lines below
-'''
-
-# source = loadInstagram()
-# getPhotos(source)
-
-
-
