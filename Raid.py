@@ -1,6 +1,8 @@
 """
 Raid.py
-CL tool using instaRaider.py to archive public Instagram photo for a specified user
+Uses instaRaider.py to save last 60 Instagram photo for a specified user
+
+v 0.1
 @amirkurtovic
 """
 from instaRaider import *
