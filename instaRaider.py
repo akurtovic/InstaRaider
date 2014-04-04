@@ -18,16 +18,14 @@ import sys
 PAUSE = 1
 
 
-def getImageCount(userName):
+def getImageCount(url):
     '''
-    Given a userName, return number of photos posted to Instagram
-    NOTE: Not functional yet
-    userName: Instagram username
+    Given a url to Instagram profile, return number of photos posted
     '''
     response = urllib2.urlopen(url)
-
-    # fix regular expression to match correct tag
-    imageCount = re.search(r'counts\":{\"media\":[^\s<>"]\,' , str(response.read()))
+    countsCode = re.search(r'counts\":{\"media\":\d+', response.read())
+    count = re.findall(r'\d+', countsCode.group())
+    return count[0]
 
 def loadInstagram(url):
     '''
@@ -38,10 +36,16 @@ def loadInstagram(url):
     driver.get(url)
     driver.implicitly_wait(PAUSE)
 
-    # TODO: Once getImageCount functional, loop to load all images
-    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    sleep(5)
-    
+    print "Loading Instagram profile...."
+    count = getImageCount(url)
+    print "Found " + str(count) + " photos."
+
+    for x in range(3):
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        sys.stdout.write('.')
+        sys.stdout.flush()
+        sleep(3)
+
     source = BeautifulSoup(driver.page_source)
     return source
 
@@ -60,7 +64,7 @@ def getPhotos(source, userName):
         os.makedirs(directory)
 
     photonumber = 0
-    print "Raiding Instagram..."
+    print "\nRaiding Instagram..."
     print "Saving photos to " + directory
     print "------"
     
