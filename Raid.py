@@ -12,22 +12,12 @@ if (len(sys.argv) != 2):
 	print "Useage: ./Raid.py username"
 else:
         userName = str(sys.argv[1])
-        
-        # compile URL from argument
-        url = 'http://instagram.com/' + userName + '/'
-        
-        # check if Instagram username is valid
-        req = urllib2.Request(url)
 
-        validUser = True
-        try:
-            urllib2.urlopen(req)
-        except:
-            print "Could not find the Instagram user"
-            validUser = False
-
-        if(validUser):
+        if(validUser(userName)):
             # Get source code from fully loaded Instagram profile page
+            url = getUrl(userName)
             source = loadInstagram(url)
             # Download all photos identified on profile page
             getPhotos(source, userName)
+        else:
+            print "Username " + userName + " is not valid."
