@@ -43,7 +43,7 @@ def loadInstagram(url):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         sys.stdout.write('.')
         sys.stdout.flush()
-        sleep(3)
+        sleep(PAUSE)
 
     source = BeautifulSoup(driver.page_source)
     return source
@@ -70,6 +70,19 @@ def validUser(userName):
         return False
     
     # if req doesn't fail, user profile exists
+    return True
+
+def photoExists(url):
+    '''
+    Returns true if photo exists
+    Used when checking which suffix Instagram used for full-res photo
+    url: URL to Instagram photo
+    '''
+    try:
+        urllib2.urlopen(url)
+    except:
+        return False
+    
     return True
 
 
@@ -99,14 +112,15 @@ def getPhotos(source, userName):
         #extract url to AWS thumbnail from each photo
         rawUrl = re.search(r'url\(\"https?://[^\s<>"]+|www\.[^\s<>"]+', str(x))
         
-        #format thumbnail url to lead to full-resolution photo
+        # format thumbnail url to lead to full-resolution photo
+        # Instagram full-res URLs end in suffixes stored in fullResSuffixes list
         photoUrl = str(rawUrl.group())[5:-5]
         suffix = ''
-        try:
-            ret = urllib2.urlopen(photoUrl + '7.jpg')
-            suffix = '7.jpg'   
-        except:
-            suffix = '8.jpg'
+        fullResSuffixes = ['7.jpg', '8.jpg', 'n.jpg']
+        for item in fullResSuffixes:
+            url = photoUrl + item
+            if(photoExists(url)):
+                suffix = item
         
         photoUrl = str(rawUrl.group())[5:-5] + suffix
         photoName = directory + userName + "_" + str(photoNumber) + '.jpg'
