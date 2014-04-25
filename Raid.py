@@ -7,8 +7,14 @@ v 0.1
 """
 from instaRaider import *
 import sys
+import argparse
 
-if (len(sys.argv) != 2):
+parser = argparse.ArgumentParser(description="TEST")
+parser.add_argument('-u', '--user', help="Instagram username", required=True)
+parser.add_argument('-c', '--count', help="Number of photos to downlooad default/Max: 60)
+
+
+if (len(sys.argv) != 4):
 	print "Useage: ./Raid.py username"
 else:
         userName = str(sys.argv[1])
@@ -18,6 +24,6 @@ else:
             url = getUrl(userName)
             source = loadInstagram(url)
             # Download all photos identified on profile page
-            getPhotos(source, userName)
+            getPhotos(source, userName, count)
         else:
             print "Username " + userName + " is not valid."
