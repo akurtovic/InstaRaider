@@ -86,7 +86,7 @@ def photoExists(url):
     return True
 
 
-def getPhotos(source, userName):
+def getPhotos(source, userName, count):
     '''
     Given source code for loaded Instagram page,
     extract all hrefs and download full-resolution photos
@@ -106,30 +106,34 @@ def getPhotos(source, userName):
     print "------"
     
     for x in source.findAll('li', {'class':'photo'}):
-        # increment photonumber for next image
-        photoNumber += 1
+    
+        if (photoNumber >= count):
+            break
+        else:
+            # increment photonumber for next image
+            photoNumber += 1
 
-        #extract url to AWS thumbnail from each photo
-        rawUrl = re.search(r'url\(\"https?://[^\s<>"]+|www\.[^\s<>"]+', str(x))
-        
-        # format thumbnail url to lead to full-resolution photo
-        # Instagram full-res URLs end in suffixes stored in fullResSuffixes list
-        photoUrl = str(rawUrl.group())[5:-5]
-        suffix = ''
-        fullResSuffixes = ['7.jpg', '8.jpg', 'n.jpg']
-        for item in fullResSuffixes:
-            url = photoUrl + item
-            if(photoExists(url)):
-                suffix = item
-        
-        photoUrl = str(rawUrl.group())[5:-5] + suffix
-        photoName = directory + userName + "_" + str(photoNumber) + '.jpg'
+            #extract url to AWS thumbnail from each photo
+            rawUrl = re.search(r'url\(\"https?://[^\s<>"]+|www\.[^\s<>"]+', str(x))
+    
+            # format thumbnail url to lead to full-resolution photo
+            # Instagram full-res URLs end in suffixes stored in fullResSuffixes list
+            photoUrl = str(rawUrl.group())[5:-5]
+            suffix = ''
+            fullResSuffixes = ['7.jpg', '8.jpg', 'n.jpg']
+            for item in fullResSuffixes:
+                url = photoUrl + item
+                if(photoExists(url)):
+                    suffix = item
+    
+            photoUrl = str(rawUrl.group())[5:-5] + suffix
+            photoName = directory + userName + "_" + str(photoNumber) + '.jpg'
 
-        # save full-resolution photo
-        urllib.urlretrieve(photoUrl, photoName)
-        sys.stdout.write('#')
-        sys.stdout.flush()
-        sleep(PAUSE)
+            # save full-resolution photo
+            urllib.urlretrieve(photoUrl, photoName)
+            sys.stdout.write('#')
+            sys.stdout.flush()
+            sleep(PAUSE)
 
     print "\n------"
     print "Saved " + str(photoNumber) + " images to " + directory

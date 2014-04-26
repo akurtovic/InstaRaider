@@ -1,23 +1,27 @@
 # InstaRaider
 ===========
 
-A Python script that automatically downloads the last 60 photos posted by any Instagram user.
+A Python script that uses Selenium WebDriver to automatically download photos for any Instagram user.
+Requires Selenium WebDriver and BeautifulSoup modules.
+InstaRaider is limited to downloading up to 60 photos from a public profile but does not rely on API calls. As long as the user's profile is public, InstaRaider will be able to download photos.
+
+@amirkurtovic
 
 ### Useage
 ```python
-python Raid.py username
+usage: Raid.py [-h] -u USER [-c COUNT]
 ```
 
 ### Output:
 ```
-$ python Raid.py username
+$ python Raid.py -u username -c 25
 Loading Instagram profile....
 Found 143 photos.
 ...
 Raiding Instagram...
 Saving photos to ./Images/username/
 ------
-############################################################
+#########################
 ------
-Saved 60 images to ./Images/username/
+Saved 25 images to ./Images/username/
 ```
