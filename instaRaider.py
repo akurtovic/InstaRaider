@@ -38,13 +38,25 @@ def loadInstagram(url):
     print "Loading Instagram profile...."
     count = getImageCount(url)
     print "Found " + str(count) + " photos."
+    clicks = (int(count)-60)/20+1
 
     for x in range(3):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         sys.stdout.write('.')
         sys.stdout.flush()
         sleep(PAUSE)
+    
+    # Click on "Load more..." label
+    element = driver.find_element_by_xpath("//html/body/span/div/div/div/section/div/span/a/span[2]/span/span")
 
+    for y in range(clicks):
+        element.click()
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        sys.stdout.write('.')
+        sys.stdout.flush()
+        sleep(PAUSE)
+     
+    # After load all profile photos, retur source to getPhotos()
     source = BeautifulSoup(driver.page_source)
     return source
 
@@ -113,7 +125,7 @@ def getPhotos(source, userName, count):
             # increment photonumber for next image
             photoNumber += 1
 
-            #extract url to AWS thumbnail from each photo
+            #extract url to thumbnail from each photo
             rawUrl = re.search(r'url\(\"https?://[^\s<>"]+|www\.[^\s<>"]+', str(x))
     
             # format thumbnail url to lead to full-resolution photo
