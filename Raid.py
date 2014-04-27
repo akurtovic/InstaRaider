@@ -1,6 +1,6 @@
 """
 Raid.py
-Uses instaRaider.py to save last 60 Instagram photo for a specified user
+Uses instaRaider.py to save Instagram photo for a specified user
 
 v 0.1
 @amirkurtovic
