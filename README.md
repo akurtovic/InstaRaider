@@ -2,8 +2,9 @@
 ===========
 
 A Python script that uses Selenium WebDriver to automatically download photos for any Instagram user.
+InstaRaider can dowload all photos for any public Instagram profile without relying on API calls or user authentication. As long as the user's profile is public, InstaRaider will be able to download a specified number of photos.
+
 Requires Selenium WebDriver and BeautifulSoup modules.
-InstaRaider is limited to downloading up to 60 photos from a public profile but does not rely on API calls. As long as the user's profile is public, InstaRaider will be able to download photos.
 
 @amirkurtovic
 
