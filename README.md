@@ -7,6 +7,7 @@ InstaRaider can dowload all photos for any public Instagram profile without rely
 Requires Selenium WebDriver and BeautifulSoup modules.
 
 @amirkurtovic
+amirkurtovic@gmail.com
 
 ### Useage
 ```python
@@ -26,3 +27,6 @@ Saving photos to ./Images/username/
 ------
 Saved 25 images to ./Images/username/
 ```
+
+### License:
+Copyright (c) 2014 Amir Kurtovic. See the LICENSE file for license rights and limitations (MIT).
