@@ -111,11 +111,23 @@ def getPhotos(source, userName, count):
     # check if directory exists, if not, make it
     if not os.path.exists(directory):
         os.makedirs(directory)
-
+    
+    # photo number for file names
     photoNumber = 0
+    
+    # indexes for progress bar
+    photosSaved = 0
+    progressBar = 0
+    
     print "\nRaiding Instagram..."
     print "Saving photos to " + directory
     print "------"
+    
+    # print progress bar
+    print "Photos saved so far:"
+    print "     ---------10--------20--------30--------40--------50"
+    sys.stdout.write(str(progressBar) + "    ")
+    sys.stdout.flush()
     
     for x in source.findAll('li', {'class':'photo'}):
     
@@ -124,7 +136,7 @@ def getPhotos(source, userName, count):
         else:
             # increment photonumber for next image
             photoNumber += 1
-
+            
             #extract url to thumbnail from each photo
             rawUrl = re.search(r'url\(\"https?://[^\s<>"]+|www\.[^\s<>"]+', str(x))
     
@@ -143,8 +155,22 @@ def getPhotos(source, userName, count):
 
             # save full-resolution photo
             urllib.urlretrieve(photoUrl, photoName)
-            sys.stdout.write('#')
-            sys.stdout.flush()
+            
+            # print hash to progress bar
+            if (photosSaved == 50):
+                photosSaved = 1
+                progressBar += 50
+                sys.stdout.write('\n' + str(progressBar) + ' ')
+                sys.stdout.write('#')
+                sys.stdout.flush()
+                
+            else:
+                # increment progress bar
+                photosSaved += 1
+                sys.stdout.write('#')
+                sys.stdout.flush()
+                
+
             sleep(PAUSE)
 
     print "\n------"
