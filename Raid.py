@@ -16,20 +16,21 @@ args = parser.parse_args()
 
 
 if (args.user):
-
     userName = args.user
-    url = getUrl(userName)
+
+    raider = instaRaider(userName)
+    url = raider.profileUrl
 
     if not args.count:
-        count = getImageCount(url)
+        count = raider.count
     else: 
         count = args.count
     
-    if(validUser(userName)):
+    if(raider.validUser(userName)):
         # Get source code from fully loaded Instagram profile page
-        source = loadInstagram(url)
+        source = raider.loadInstagram(url)
 
         # Download all photos identified on profile page
-        getPhotos(source, userName, count)
+        raider.getPhotos(source, userName, count)
     else:
         print "Username " + userName + " is not valid."
