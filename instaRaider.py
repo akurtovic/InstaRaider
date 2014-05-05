@@ -31,13 +31,17 @@ class instaRaider(object):
         Using Selenium WebDriver, load Instagram page to get page source
     
         '''
+        count = self.getImageCount(self.profileUrl)
+        print userName + " has " + str(count) + " photos on Instagram."
+
+        print "Loading Selenium WebDriver..."
+        print "With a slow internet connection, this could take a while."
         driver = webdriver.Firefox()
         driver.get(self.profileUrl)
         driver.implicitly_wait(self.PAUSE)
 
-        print "Loading Instagram profile...."
-        count = self.getImageCount(self.profileUrl)
-        print "Found " + str(count) + " photos."
+        print "Loading Instagram profile..."
+
         clicks = (int(count)-60)/20+1
 
         for x in range(3):
@@ -97,6 +101,10 @@ class instaRaider(object):
         '''
         # directory where photos will be saved
         directory = './Images/' + userName + '/'
+        
+        # logfile to store urls is csv format
+        logfile = userName + '.csv'
+        file = open(logfile, "a")
 
         # check if directory exists, if not, make it
         if not os.path.exists(directory):
@@ -108,11 +116,16 @@ class instaRaider(object):
         # indexes for progress bar
         photosSaved = 0
         progressBar = 0
+
     
         print "\nRaiding Instagram..."
         print "Saving photos to " + directory
+        
+        # TODO: Fix formatting issue
+        timeToSave = str(count/60) + ":" + str(count%60)
+        print "This could take " + timeToSave + "."
+        
         print "------"
-    
         # print progress bar
         print "Photos saved so far:"
         print "     ---------10--------20--------30--------40--------50"
@@ -144,6 +157,9 @@ class instaRaider(object):
 
                 # save full-resolution photo
                 urllib.urlretrieve(photoUrl, photoName)
+                
+                # save filename and url to CSV file
+                file.write(photourl + "," + photoName + "\n")
             
                 # print hash to progress bar
                 if (photosSaved == 50):
@@ -164,6 +180,10 @@ class instaRaider(object):
 
         print "\n------"
         print "Saved " + str(photoNumber) + " images to " + directory
+        
+        # close logfile
+        file.close()
+        print "Saved activity in logfile: " + logfile
     
     
     def __init__(self, userName):
