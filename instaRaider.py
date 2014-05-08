@@ -32,10 +32,9 @@ class instaRaider(object):
     
         '''
         count = self.getImageCount(self.profileUrl)
-        print userName + " has " + str(count) + " photos on Instagram."
+        print self.userName + " has " + str(count) + " photos on Instagram."
 
         print "Loading Selenium WebDriver..."
-        print "With a slow internet connection, this could take a while."
         driver = webdriver.Firefox()
         driver.get(self.profileUrl)
         driver.implicitly_wait(self.PAUSE)
@@ -159,7 +158,7 @@ class instaRaider(object):
                 urllib.urlretrieve(photoUrl, photoName)
                 
                 # save filename and url to CSV file
-                file.write(photourl + "," + photoName + "\n")
+                file.write(photoUrl + "," + photoName + "\n")
             
                 # print hash to progress bar
                 if (photosSaved == 50):
