@@ -20,18 +20,22 @@ usage: Raid.py [-h] -u USER [-c COUNT]
 
 ### Output:
 ```
-$ python Raid.py -u username -c 15
-Loading Instagram profile....
-Found 195 photos.
-..........
+$ python Raid.py -u username -c 25
+username has 201 photos on Instagram.
+Loading Selenium WebDriver...
+Loading Instagram profile...
+...........
 Raiding Instagram...
 Saving photos to ./Images/username/
+This could take 0:26.
 ------
 Photos saved so far:
      ---------10--------20--------30--------40--------50
-0    ###############
+0    #########################
 ------
-Saved 15 images to ./Images/username/
+Saved 1 images to ./Images/username/
+Saved activity in logfile: username.csv
+
 ```
 
 ### License:
