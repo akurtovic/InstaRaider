@@ -61,6 +61,10 @@ class instaRaider(object):
      
         # After load all profile photos, retur source to getPhotos()
         source = BeautifulSoup(driver.page_source)
+        
+        # close Firefox window
+        driver.close()
+
         return source
 
     def validUser(self, userName):
