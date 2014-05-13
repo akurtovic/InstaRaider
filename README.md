@@ -27,13 +27,13 @@ Loading Instagram profile...
 ...........
 Raiding Instagram...
 Saving photos to ./Images/username/
-This could take 0:26.
+This could take 0:25.
 ------
 Photos saved so far:
      ---------10--------20--------30--------40--------50
 0    #########################
 ------
-Saved 1 images to ./Images/username/
+Saved 25 images to ./Images/username/
 Saved activity in logfile: username.csv
 
 ```
