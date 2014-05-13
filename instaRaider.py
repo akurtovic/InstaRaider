@@ -88,7 +88,7 @@ class instaRaider(object):
         url: URL to Instagram photo
         '''
         try:
-            urllib2.urlopen(profileUrl)
+            urllib2.urlopen(url)
         except:
             return False
     
