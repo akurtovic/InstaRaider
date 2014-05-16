@@ -7,7 +7,7 @@ This code is posted for informational purposes only. Use of Instagram is governe
 ---
 ### InstaRaider
 A Python script that uses Selenium WebDriver to automatically download photos for any Instagram user.
-InstaRaider can dowload all photos for any public Instagram profile without relying on API calls or user authentication. As long as the user's profile is public, InstaRaider will be able to download a specified number of photos.
+InstaRaider can download all photos for any public Instagram profile without relying on API calls or user authentication. As long as the user's profile is public, InstaRaider will be able to download a specified number of photos.
 
 Requires Selenium WebDriver and BeautifulSoup modules.
 
@@ -15,12 +15,12 @@ Requires Selenium WebDriver and BeautifulSoup modules.
 
 ### Useage
 ```python
-usage: Raid.py [-h] -u USER [-c COUNT]
+usage: instaRaider.py [-h] -u USER [-c COUNT]
 ```
 
 ### Output:
 ```
-$ python Raid.py -u username -c 25
+$ python instaRaider.py -u username -c 25
 username has 201 photos on Instagram.
 Loading Selenium WebDriver...
 Loading Instagram profile...
