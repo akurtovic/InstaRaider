@@ -37,7 +37,13 @@ class instaRaider(object):
         print self.userName + " has " + str(count) + " photos on Instagram."
 
         print "Loading Selenium WebDriver..."
+        
+        # Load webdriver and scale window down
         driver = webdriver.Firefox()
+        driver.set_window_size(40,40)
+        driver.set_window_position(20,20)
+        
+        # load Instagram profile and wait for PAUSE 
         driver.get(self.profileUrl)
         driver.implicitly_wait(self.PAUSE)
 
