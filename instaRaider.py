@@ -114,7 +114,7 @@ class instaRaider(object):
         directory = './Images/' + userName + '/'
         
         # logfile to store urls is csv format
-        logfile = directory + '.csv'
+        logfile = './Images/' + userName + '/' + userName + '.csv'
         file = open(logfile, "a")
 
         # check if directory exists, if not, make it
@@ -136,8 +136,7 @@ class instaRaider(object):
         # print progress bar
         print "Photos saved so far:"
         print "---------10--------20--------30--------40--------50"
-        sys.stdout.write(str(progressBar) + "    ")
-        sys.stdout.flush()
+
     
         for x in source.findAll('li', {'class':'photo'}):
     
