@@ -114,7 +114,7 @@ class instaRaider(object):
         directory = './Images/' + userName + '/'
         
         # logfile to store urls is csv format
-        logfile = userName + '.csv'
+        logfile = directory + '.csv'
         file = open(logfile, "a")
 
         # check if directory exists, if not, make it
@@ -131,15 +131,11 @@ class instaRaider(object):
     
         print "\nRaiding Instagram..."
         print "Saving photos to " + directory
-        
-        # TODO: Fix formatting issue
-        timeToSave = str(count/60) + ":" + str(count%60)
-        print "This could take " + timeToSave + "."
-        
+    
         print "------"
         # print progress bar
         print "Photos saved so far:"
-        print "     ---------10--------20--------30--------40--------50"
+        print "---------10--------20--------30--------40--------50"
         sys.stdout.write(str(progressBar) + "    ")
         sys.stdout.flush()
     
@@ -176,7 +172,7 @@ class instaRaider(object):
                 if (photosSaved == 50):
                     photosSaved = 1
                     progressBar += 50
-                    sys.stdout.write('\n' + str(progressBar) + ' ')
+                    sys.stdout.write('\n')
                     sys.stdout.write('#')
                     sys.stdout.flush()
                 
@@ -186,7 +182,6 @@ class instaRaider(object):
                     sys.stdout.write('#')
                     sys.stdout.flush()
                 
-
                 sleep(self.PAUSE)
 
         print "\n------"
