@@ -57,15 +57,19 @@ class instaRaider(object):
             sys.stdout.flush()
             sleep(self.PAUSE)
     
-        # Click on "Load more..." label
-        element = driver.find_element_by_xpath(self.loadLabelXPATH)
+        # Load full Instagram profile if more than initial 60 photos desired
+        if (args.count < 61):
+            pass
+        else:
+            # Click on "Load more..." label
+            element = driver.find_element_by_xpath(self.loadLabelXPATH)
 
-        for y in range(clicks):
-            element.click()
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            sys.stdout.write('.')
-            sys.stdout.flush()
-            sleep(self.PAUSE)
+            for y in range(clicks):
+                element.click()
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                sys.stdout.write('.')
+                sys.stdout.flush()
+                sleep(self.PAUSE)
      
         # After load all profile photos, retur source to getPhotos()
         source = BeautifulSoup(driver.page_source)
@@ -79,15 +83,16 @@ class instaRaider(object):
         '''
         returns True if Instagram username is valid
         '''
+        valid = True
         # check if Instagram username is valid
         req = urllib2.Request(self.profileUrl)
 
         try:
             urllib2.urlopen(req)
         except:
-            return False
+            valid = False
         # if req doesn't fail, user profile exists
-        return True
+        return valid
 
     def photoExists(self, url):
         '''
@@ -112,15 +117,18 @@ class instaRaider(object):
         '''
         # directory where photos will be saved
         directory = './Images/' + userName + '/'
-        
-        # logfile to store urls is csv format
-        logfile = './Images/' + userName + '/' + userName + '.csv'
-        file = open(logfile, "a")
 
         # check if directory exists, if not, make it
         if not os.path.exists(directory):
             os.makedirs(directory)
-    
+        
+        # logfile to store urls is csv format
+        logfile = './Images/' + userName + '/' + userName + '.csv'
+        try:
+            file = open(logfile, "a")
+        except IOError:
+            print "\nLog file does not exist."
+
         # photo number for file names
         photoNumber = 0
     
@@ -194,36 +202,41 @@ class instaRaider(object):
     def __init__(self, userName):
         self.userName = userName
         self.profileUrl = 'http://instagram.com/' + userName + '/'
-        self.count = self.getImageCount(self.profileUrl)
         self.fullResSuffixes = ['7.jpg', '8.jpg', 'n.jpg']
         self.PAUSE = 1
-        self.loadLabelXPATH = "//html/body/span/div/div/div/section/div/span/a/span[2]/span/span"
+        self.loadLabelXPATH = "/html/body/div/div/div/section/div/span/a/span[2]/span/span"
 
 if __name__ == '__main__':
 
-	# parse arguments
-	parser = argparse.ArgumentParser(description="InstaRaider")
-	parser.add_argument('-u', '--user', help="Instagram username", required=True)
-	parser.add_argument('-c', '--count', help="# of photos to download", type=int)
-	args = parser.parse_args()
+    # parse arguments
+    parser = argparse.ArgumentParser(description="InstaRaider")
+    parser.add_argument('-u', '--user', help="Instagram username", required=True)
+    parser.add_argument('-c', '--count', help="# of photos to download", type=int)
+    args = parser.parse_args()
 
-	if (args.user):
-		userName = args.user
+    if (args.user):
+        userName = args.user
 
-		raider = instaRaider(userName)
-		url = raider.profileUrl
+        raider = instaRaider(userName)
+        url = raider.profileUrl
 
-		if not args.count:
-			count = raider.count
-		else: 
-			count = args.count
-		
-		if(raider.validUser(userName)):
-			# Get source code from fully loaded Instagram profile page
-			source = raider.loadInstagram(url)
+        if not args.count:
+            count = raider.getImageCount(url)
+        else:
+            count = args.count
+            if raider.getImageCount(url) < count:
+                print "You want to dowload %r photos." % args.count
+                print "The user only has %r photo." % raider.getImageCount(url)
+                print "Downloading all photos."
+                count = raider.getImageCount(url)
+            
+        
+        if(raider.validUser(userName)):
+            # Get source code from fully loaded Instagram profile page
+            source = raider.loadInstagram(url)
 
-			# Download all photos identified on profile page
-			raider.getPhotos(source, userName, count)
-		else:
-			print "Username " + userName + " is not valid."
-		
+            # Download all photos identified on profile page
+            raider.getPhotos(source, userName, count)
+        else:
+            print "Username " + userName + " is not valid."
+        
