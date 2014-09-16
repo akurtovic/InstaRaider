@@ -6,6 +6,8 @@ usage: instaRaider.py [-h] -u USER [-c COUNT]
 
 @amirkurtovic
 
+TEST
+
 """
 from bs4 import BeautifulSoup
 import selenium.webdriver as webdriver
