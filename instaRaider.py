@@ -83,16 +83,15 @@ class instaRaider(object):
         '''
         returns True if Instagram username is valid
         '''
-        valid = True
         # check if Instagram username is valid
         req = urllib2.Request(self.profileUrl)
 
         try:
             urllib2.urlopen(req)
         except:
-            valid = False
+            return False
         # if req doesn't fail, user profile exists
-        return valid
+        return True
 
     def photoExists(self, url):
         '''
@@ -146,8 +145,8 @@ class instaRaider(object):
         print "---------10--------20--------30--------40--------50"
 
     
-        for x in source.findAll('li', {'class':'photo'}):
-    
+        for x in source.findAll('div', {'class':'Image'}):
+
             if (photoNumber >= count):
                 break
             else:
@@ -155,18 +154,10 @@ class instaRaider(object):
                 photoNumber += 1
             
                 #extract url to thumbnail from each photo
-                rawUrl = re.search(r'url\(\"https?://[^\s<>"]+|www\.[^\s<>"]+', str(x))
-    
-                # format thumbnail url to lead to full-resolution photo
-                # Instagram full-res URLs end in suffixes stored in fullResSuffixes list
-                photoUrl = str(rawUrl.group())[5:-5]
-                suffix = ''
-                for item in self.fullResSuffixes:
-                    url = photoUrl + item
-                    if(self.photoExists(url)):
-                        suffix = item
-    
-                photoUrl = str(rawUrl.group())[5:-5] + suffix
+                x = x.div
+                rawUrl = x['style']
+
+                photoUrl = rawUrl[21:-2]
                 photoName = directory + userName + "_" + str(photoNumber) + '.jpg'
 
                 # save full-resolution photo
@@ -220,18 +211,18 @@ if __name__ == '__main__':
         raider = instaRaider(userName)
         url = raider.profileUrl
 
-        if not args.count:
-            count = raider.getImageCount(url)
-        else:
-            count = args.count
-            if raider.getImageCount(url) < count:
-                print "You want to dowload %r photos." % args.count
-                print "The user only has %r photo." % raider.getImageCount(url)
-                print "Downloading all photos."
-                count = raider.getImageCount(url)
-            
-        
         if(raider.validUser(userName)):
+
+            if not args.count:
+                count = raider.getImageCount(url)
+            else:
+                count = args.count
+                if raider.getImageCount(url) < count:
+                    print "You want to dowload %r photos." % args.count
+                    print "The user only has %r photo." % raider.getImageCount(url)
+                    print "Downloading all photos."
+                    count = raider.getImageCount(url)
+            
             # Get source code from fully loaded Instagram profile page
             source = raider.loadInstagram(url)
 
