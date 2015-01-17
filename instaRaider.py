@@ -193,7 +193,6 @@ class instaRaider(object):
     def __init__(self, userName):
         self.userName = userName
         self.profileUrl = 'http://instagram.com/' + userName + '/'
-        self.fullResSuffixes = ['7.jpg', '8.jpg', 'n.jpg']
         self.PAUSE = 1
         self.loadLabelXPATH = "/html/body/div/div/div/section/div/span/a/span[2]/span/span"
 
