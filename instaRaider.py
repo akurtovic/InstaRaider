@@ -42,12 +42,17 @@ class instaRaider(object):
         driver = webdriver.Firefox()
         driver.set_window_size(40,40)
         driver.set_window_position(20,20)
-        
+
+        print "Loading Instagram profile..."
         # load Instagram profile and wait for PAUSE 
         driver.get(self.profileUrl)
         driver.implicitly_wait(self.PAUSE)
 
-        print "Loading Instagram profile..."
+        # Check if the profile is private. If so, exit
+        try:
+            driver.find_element_by_css_selector('.MediaComp')
+        except:
+            sys.exit("User profile is private. Aborting.")
 
         clicks = (int(count)-60)/20+1
 
