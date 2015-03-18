@@ -201,7 +201,7 @@ class instaRaider(object):
         self.userName = userName
         self.profileUrl = 'http://instagram.com/' + userName + '/'
         self.PAUSE = 1
-        self.loadLabelXPATH = "/html/body/div/div/div/section/div/span/a/span[2]/span/span"
+        self.loadLabelXPATH = "/html/body/div/div/div/div/div/div/button/span"
 
 if __name__ == '__main__':
 
