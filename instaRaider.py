@@ -16,6 +16,7 @@ import urllib2
 import os
 import sys
 import argparse
+import re
 
 class instaRaider(object):
 
@@ -40,8 +41,8 @@ class instaRaider(object):
         
         # Load webdriver and scale window down
         driver = webdriver.Firefox()
-        driver.set_window_size(40,40)
-        driver.set_window_position(20,20)
+        # driver.set_window_size(40,40)
+        # driver.set_window_position(20,20)
 
         print "Loading Instagram profile..."
         # load Instagram profile and wait for PAUSE 
@@ -159,10 +160,11 @@ class instaRaider(object):
                 photoNumber += 1
             
                 #extract url to thumbnail from each photo
-                x = x.div
-                rawUrl = x['style']
+                photoDiv = x.div
 
-                photoUrl = rawUrl[21:-2]
+                rawUrl = re.search('https.+;', str(photoDiv));
+                photoUrl = str(rawUrl.group(0))[:-2]
+
                 photoName = directory + userName + "_" + str(photoNumber) + '.jpg'
 
                 # save full-resolution photo
