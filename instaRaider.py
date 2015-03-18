@@ -41,8 +41,8 @@ class instaRaider(object):
         
         # Load webdriver and scale window down
         driver = webdriver.Firefox()
-        # driver.set_window_size(40,40)
-        # driver.set_window_position(20,20)
+        driver.set_window_size(200,300)
+        driver.set_window_position(20,20)
 
         print "Loading Instagram profile..."
         # load Instagram profile and wait for PAUSE 
