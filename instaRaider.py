@@ -201,11 +201,7 @@ class instaRaider(object):
         self.userName = userName
         self.profileUrl = 'http://instagram.com/' + userName + '/'
         self.PAUSE = 1
-<<<<<<< HEAD
         self.loadLabelCssSelector = "body > div.root > div > div > div > div.mbMedia > div.ResponsiveBlock > button > span"
-=======
-        self.loadLabelXPATH = "/html/body/div/div/div/div/div/div/button/span"
->>>>>>> 81b450f80afc3e44628044e20d8f798db72bb9c6
 
 if __name__ == '__main__':
 
