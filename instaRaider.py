@@ -68,7 +68,7 @@ class instaRaider(object):
             pass
         else:
             # Click on "Load more..." label
-            element = driver.find_element_by_xpath(self.loadLabelXPATH)
+            element = driver.find_element_by_css_selector(self.loadLabelCssSelector)
 
             for y in range(clicks):
                 element.click()
@@ -201,7 +201,7 @@ class instaRaider(object):
         self.userName = userName
         self.profileUrl = 'http://instagram.com/' + userName + '/'
         self.PAUSE = 1
-        self.loadLabelXPATH = "/html/body/div/div/div/section/div/span/a/span[2]/span/span"
+        self.loadLabelCssSelector = "body > div.root > div > div > div > div.mbMedia > div.ResponsiveBlock > button > span"
 
 if __name__ == '__main__':
 
@@ -210,30 +210,31 @@ if __name__ == '__main__':
     parser.add_argument('-u', '--user', help="Instagram username", required=True)
     parser.add_argument('-c', '--count', help="# of photos to download", type=int)
     args = parser.parse_args()
+    ready = False
 
     if (args.user):
         userName = args.user
-
         raider = instaRaider(userName)
-        url = raider.profileUrl
 
         if(raider.validUser(userName)):
-
-            if not args.count:
-                count = raider.getImageCount(url)
-            else:
-                count = args.count
-                if raider.getImageCount(url) < count:
-                    print "You want to dowload %r photos." % args.count
-                    print "The user only has %r photo." % raider.getImageCount(url)
-                    print "Downloading all photos."
-                    count = raider.getImageCount(url)
-            
-            # Get source code from fully loaded Instagram profile page
-            source = raider.loadInstagram(url)
-
-            # Download all photos identified on profile page
-            raider.getPhotos(source, userName, count)
+            ready = True
+            url = raider.profileUrl
         else:
             print "Username " + userName + " is not valid."
+
+    if (args.count):
+        if (args.count > raider.getImageCount(url)):
+            count = raider.getImageCount(url)
+        else:
+            count = args.count
+    else:
+        count = raider.getImageCount(url)
+
+    if(ready):
+        # Get source code from fully loaded Instagram profile page
+        source = raider.loadInstagram(url)
+
+        # Download all photos identified on profile page
+        raider.getPhotos(source, userName, count)
+        
         
