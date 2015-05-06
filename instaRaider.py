@@ -168,7 +168,13 @@ class instaRaider(object):
                 photoName = directory + userName + "_" + str(photoNumber) + '.jpg'
 
                 # save full-resolution photo
-                urllib.urlretrieve(photoUrl, photoName)
+                #urllib.urlretrieve(photoUrl, photoName)
+                req = urllib2.Request(photoUrl)
+                response = urllib2.urlopen(req)
+
+                output = open(photoName, 'wb')
+                output.write(response.read())
+                output.close()
                 
                 # save filename and url to CSV file
                 file.write(photoUrl + "," + photoName + "\n")
