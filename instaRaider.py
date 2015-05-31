@@ -13,6 +13,7 @@ import re
 from time import sleep
 import urllib
 import urllib2
+import urlparse
 import os
 import sys
 import argparse
@@ -162,19 +163,15 @@ class instaRaider(object):
                 #extract url to thumbnail from each photo
                 photoDiv = x.div
 
+				# find image
                 rawUrl = re.search('https.+;', str(photoDiv));
                 photoUrl = str(rawUrl.group(0))[:-2]
+                split = urlparse.urlsplit(photoUrl)
+                photoName = directory + split.path.split("/")[-1]
 
-                photoName = directory + userName + "_" + str(photoNumber) + '.jpg'
-
-                # save full-resolution photo
-                #urllib.urlretrieve(photoUrl, photoName)
-                req = urllib2.Request(photoUrl)
-                response = urllib2.urlopen(req)
-
-                output = open(photoName, 'wb')
-                output.write(response.read())
-                output.close()
+                # save full-resolution photo if its new
+                if not os.path.isfile(photoName):
+                    urllib.urlretrieve(photoUrl, photoName)
                 
                 # save filename and url to CSV file
                 file.write(photoUrl + "," + photoName + "\n")
