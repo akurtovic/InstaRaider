@@ -1,5 +1,9 @@
 # InstaRaider
 ===========
+### Note
+Due to a recent re-design of the Instagram website, InstaRaider currently does not work. I do plan to fix the issues, but have not gotten around to it yet. Patience. 
+
+---
 **DISCLAIMER:**
 
 This code is posted for informational purposes only. Use of Instagram is governed by the company's Terms of Use (http://instagram.com/legal/terms/). Any user content posted to Instagram is governed by the Privacy Policy (http://instagram.com/legal/privacy/). While I will make all attempts to ensure that InstaRaider works as described below, any future changes to Instragram may introduce errors. If you find a bug or notice that InstaRaider is not working, please feel free to email me at amirkurtovic@gmail.com
