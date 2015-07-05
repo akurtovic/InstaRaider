@@ -9,6 +9,7 @@ usage: instaRaider.py [-h] -u USER [-c COUNT]
 """
 from bs4 import BeautifulSoup
 import selenium.webdriver as webdriver
+from selenium.webdriver.common.action_chains import ActionChains
 import re
 from time import sleep
 import urllib
@@ -25,8 +26,10 @@ class instaRaider(object):
         '''
         Given a url to Instagram profile, return number of photos posted
         '''
+        print url
         response = urllib2.urlopen(url)
-        countsCode = re.search(r'counts\":{\"media\":\d+', response.read())
+        countsCode = re.search(r'\"media":{"count":\d+', response.read())
+        print countsCode
         count = re.findall(r'\d+', countsCode.group())
         return count[0]
 
@@ -42,8 +45,6 @@ class instaRaider(object):
         
         # Load webdriver and scale window down
         driver = webdriver.Firefox()
-        driver.set_window_size(200,300)
-        driver.set_window_position(20,20)
 
         print "Loading Instagram profile..."
         # load Instagram profile and wait for PAUSE 
@@ -52,34 +53,39 @@ class instaRaider(object):
 
         # Check if the profile is private. If so, exit
         try:
-            driver.find_element_by_css_selector('.MediaComp')
+            driver.find_element_by_css_selector('.-cx-PRIVATE-Shell__main')
         except:
             sys.exit("User profile is private. Aborting.")
 
         clicks = (int(count)-60)/20+1
 
-        for x in range(3):
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            sys.stdout.write('.')
-            sys.stdout.flush()
-            sleep(self.PAUSE)
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     
         # Load full Instagram profile if more than initial 60 photos desired
         if (args.count < 61):
             pass
         else:
             # Click on "Load more..." label
+            print self.loadLabelCssSelector
             element = driver.find_element_by_css_selector(self.loadLabelCssSelector)
+            driver.implicitly_wait(self.PAUSE)
+            '''actionChains = ActionChains(driver)
+            actionChains.double_click(element).perform()
+            driver.implicitly_wait(self.PAUSE)'''
+            element.click()
+
 
             for y in range(clicks):
-                element.click()
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                driver.implicitly_wait(self.PAUSE)
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight+100);")
                 sys.stdout.write('.')
                 sys.stdout.flush()
                 sleep(self.PAUSE)
      
         # After load all profile photos, retur source to getPhotos()
         source = BeautifulSoup(driver.page_source)
+        print source
         
         # close Firefox window
         driver.close()
@@ -204,7 +210,8 @@ class instaRaider(object):
         self.userName = userName
         self.profileUrl = 'http://instagram.com/' + userName + '/'
         self.PAUSE = 1
-        self.loadLabelCssSelector = "div.mbMedia > div.ResponsiveBlock > button > span"
+        self.postCount = "span.-cx-PRIVATE-PostsStatistic__count"
+        self.loadLabelCssSelector = "div.-cx-PRIVATE-AutoloadingPostsGrid__moreLoadingIndicator"
 
 if __name__ == '__main__':
 
