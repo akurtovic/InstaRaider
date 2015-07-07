@@ -26,10 +26,8 @@ class instaRaider(object):
         '''
         Given a url to Instagram profile, return number of photos posted
         '''
-        print url
         response = urllib2.urlopen(url)
         countsCode = re.search(r'\"media":{"count":\d+', response.read())
-        print countsCode
         count = re.findall(r'\d+', countsCode.group())
         return count[0]
 
@@ -69,23 +67,17 @@ class instaRaider(object):
             print self.loadLabelCssSelector
             element = driver.find_element_by_css_selector(self.loadLabelCssSelector)
             driver.implicitly_wait(self.PAUSE)
-            '''actionChains = ActionChains(driver)
-            actionChains.double_click(element).perform()
-            driver.implicitly_wait(self.PAUSE)'''
             element.click()
 
 
             for y in range(clicks):
                 driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 driver.implicitly_wait(self.PAUSE)
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight+100);")
                 sys.stdout.write('.')
                 sys.stdout.flush()
-                sleep(self.PAUSE)
      
         # After load all profile photos, retur source to getPhotos()
-        source = BeautifulSoup(driver.page_source)
-        print source
+        source = driver.page_source
         
         # close Firefox window
         driver.close()
@@ -157,21 +149,17 @@ class instaRaider(object):
         print "Photos saved so far:"
         print "---------10--------20--------30--------40--------50"
 
-    
-        for x in source.findAll('div', {'class':'Image'}):
+        links = re.findall(r'display_src":"[https]+:...[\/\w \.-]*..[\/\w \.-]*..[\/\w \.-]*..[\/\w \.-]*', source)
+
+        for x in links:
 
             if (photoNumber >= count):
                 break
             else:
                 # increment photonumber for next image
                 photoNumber += 1
-            
-                #extract url to thumbnail from each photo
-                photoDiv = x.div
-
-				# find image
-                rawUrl = re.search('https.+;', str(photoDiv));
-                photoUrl = str(rawUrl.group(0))[:-2]
+                photoUrl = x[14:]
+                photoUrl = photoUrl.replace('\\', '')
                 split = urlparse.urlsplit(photoUrl)
                 photoName = directory + split.path.split("/")[-1]
 
