@@ -7,12 +7,8 @@ usage: instaRaider.py [-h] -u USER [-c COUNT]
 @amirkurtovic
 
 """
-from bs4 import BeautifulSoup
 import selenium.webdriver as webdriver
-from selenium.webdriver.common.action_chains import ActionChains
-import re
 from time import sleep
-import urllib
 import urllib2
 import urlparse
 import os
@@ -165,7 +161,7 @@ class instaRaider(object):
 
                 # save full-resolution photo if its new
                 if not os.path.isfile(photoName):
-                    urllib.urlretrieve(photoUrl, photoName)
+                    urllib2.urlretrieve(photoUrl, photoName)
                 
                 # save filename and url to CSV file
                 file.write(photoUrl + "," + photoName + "\n")
