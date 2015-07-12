@@ -10,10 +10,6 @@ This code is posted for informational purposes only. Use of Instagram is governe
 InstaRaider is a Instagram archiving tool that downloads all photos for any Instagram user.
 InstaRaider can download all photos for any public Instagram profile without relying on API calls or user authentication. 
 
-@amirkurtovic
-
-Requires Selenium WebDriver and BeautifulSoup modules
-
 ### Installation (Ubuntu/Debian)
 This ensures that all dependencies are satisfied on Ubuntu/Debian
 
