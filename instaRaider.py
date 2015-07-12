@@ -2,13 +2,14 @@
 """
 instaRaider.py
 
-usage: instaRaider.py [-h] -u USER [-c COUNT]
+usage: instaRaider.py [-h] -u USERNAME
 
 @amirkurtovic
 
 """
 import selenium.webdriver as webdriver
-from time import sleep
+import time
+from selenium.webdriver.support.ui import WebDriverWait
 import urllib2
 import urlparse
 import os
@@ -33,12 +34,14 @@ class instaRaider(object):
     
         '''
         count = self.getImageCount(self.profileUrl)
-        print self.userName + " has " + str(count) + " photos on Instagram."
+        print self.userName + " has " + str(count) + " posts on Instagram."
 
         print "Loading Selenium WebDriver..."
         
-        # Load webdriver and scale window down
-        driver = webdriver.Firefox()
+        # Load webdriver
+        profile = webdriver.FirefoxProfile()
+        profile.set_preference("general.useragent.override", self.user_agent)
+        driver = webdriver.Firefox(profile)
 
         print "Loading Instagram profile..."
         # load Instagram profile and wait for PAUSE 
@@ -51,28 +54,20 @@ class instaRaider(object):
         except:
             sys.exit("User profile is private. Aborting.")
 
-        clicks = (int(count)-60)/20+1
-
+        scrollToBottom = (int(count)-24)/9+1
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     
-        # Load full Instagram profile if more than initial 60 photos desired
-        if (args.count < 61):
-            pass
-        else:
-            # Click on "Load more..." label
-            print self.loadLabelCssSelector
-            element = driver.find_element_by_css_selector(self.loadLabelCssSelector)
-            driver.implicitly_wait(self.PAUSE)
-            element.click()
+        element = driver.find_element_by_css_selector(self.loadLabelCssSelector)
+        driver.implicitly_wait(self.PAUSE)
+        element.click()
 
-
-            for y in range(clicks):
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                driver.implicitly_wait(self.PAUSE)
-                sys.stdout.write('.')
-                sys.stdout.flush()
+        for y in range(scrollToBottom):
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(0.2)
+            driver.execute_script("window.scrollTo(0, 0);")
      
         # After load all profile photos, retur source to getPhotos()
+        time.sleep(1)
         source = driver.page_source
         
         # close Firefox window
@@ -80,7 +75,7 @@ class instaRaider(object):
 
         return source
 
-    def validUser(self, userName):
+    def isValidUser(self, userName):
         '''
         returns True if Instagram username is valid
         '''
@@ -91,24 +86,31 @@ class instaRaider(object):
             urllib2.urlopen(req)
         except:
             return False
-        # if req doesn't fail, user profile exists
+        # if request doesn't fail, user profile exists
         return True
 
-    def photoExists(self, url):
-        '''
-        Returns true if photo exists
-        Used when checking which suffix Instagram used for full-res photo
-        url: URL to Instagram photo
-        '''
-        try:
-            urllib2.urlopen(url)
-        except:
-            return False
-    
-        return True
+    def printProgressBar(self, directory):
+        print "\nRaiding Instagram..."
+        print "Saving photos to " + directory
+        print "------"
+        print "Photos saved so far:"
+        print "---------10--------20--------30--------40--------50"
 
+    def updateProgressBar(self, photosSaved, progressBar):
+        # print hash to progress bar
+        if (photosSaved == 50):
+            photosSaved = 1
+            progressBar += 50
+            sys.stdout.write('\n')
+            sys.stdout.write('#')
+            sys.stdout.flush()
+        
+        else:
+            # increment progress bar
+            sys.stdout.write('#')
+            sys.stdout.flush()
 
-    def getPhotos(self, source, userName, count):
+    def getPhotos(self, source, userName):
         '''
         Given source code for loaded Instagram page,
         extract all hrefs and download full-resolution photos
@@ -135,55 +137,33 @@ class instaRaider(object):
         # indexes for progress bar
         photosSaved = 0
         progressBar = 0
+        self.printProgressBar(directory)
 
-    
-        print "\nRaiding Instagram..."
-        print "Saving photos to " + directory
-    
-        print "------"
-        # print progress bar
-        print "Photos saved so far:"
-        print "---------10--------20--------30--------40--------50"
-
-        links = re.findall(r'display_src":"[https]+:...[\/\w \.-]*..[\/\w \.-]*..[\/\w \.-]*..[\/\w \.-]*', source)
+        links = re.findall(r'src="[https]+:...[\/\w \.-]*..[\/\w \.-]*..[\/\w \.-]*..[\/\w \.-].jpg', source)
 
         for x in links:
+            # increment photonumber for next image
+            photoUrl = x[5:]
+            photoUrl = photoUrl.replace('\\', '')
+            split = urlparse.urlsplit(photoUrl)
+            photoName = directory + split.path.split("/")[-1]
 
-            if (photoNumber >= count):
-                break
-            else:
-                # increment photonumber for next image
+            # save full-resolution photo if its new
+            if not os.path.isfile(photoName):
                 photoNumber += 1
-                photoUrl = x[14:]
-                photoUrl = photoUrl.replace('\\', '')
-                split = urlparse.urlsplit(photoUrl)
-                photoName = directory + split.path.split("/")[-1]
-
-                # save full-resolution photo if its new
-                if not os.path.isfile(photoName):
-                    urllib2.urlretrieve(photoUrl, photoName)
-                
-                # save filename and url to CSV file
-                file.write(photoUrl + "," + photoName + "\n")
+                imageRequest = urllib2.Request(photoUrl, headers=self.header)
+                imageData = urllib2.urlopen(imageRequest).read()
+                output = open(photoName,'wb')
+                output.write(imageData)
+                output.close()
+                photosSaved += 1
+                self.updateProgressBar(photosSaved, progressBar);
             
-                # print hash to progress bar
-                if (photosSaved == 50):
-                    photosSaved = 1
-                    progressBar += 50
-                    sys.stdout.write('\n')
-                    sys.stdout.write('#')
-                    sys.stdout.flush()
-                
-                else:
-                    # increment progress bar
-                    photosSaved += 1
-                    sys.stdout.write('#')
-                    sys.stdout.flush()
-                
-                sleep(self.PAUSE)
-
+            # save filename and url to CSV file
+            file.write(photoUrl + "," + photoName + "\n")
+            
         print "\n------"
-        print "Saved " + str(photoNumber) + " images to " + directory
+        print "Saved " + str(photoNumber) + " new images to " + directory
         
         # close logfile
         file.close()
@@ -195,14 +175,15 @@ class instaRaider(object):
         self.profileUrl = 'http://instagram.com/' + userName + '/'
         self.PAUSE = 1
         self.postCount = "span.-cx-PRIVATE-PostsStatistic__count"
-        self.loadLabelCssSelector = "div.-cx-PRIVATE-AutoloadingPostsGrid__moreLoadingIndicator"
+        self.loadLabelCssSelector = "div.-cx-PRIVATE-AutoloadingPostsGrid__moreLoadingIndicator a"
+        self.user_agent = 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'
+        self.header = { 'User-Agent' : self.user_agent }
 
 if __name__ == '__main__':
 
     # parse arguments
     parser = argparse.ArgumentParser(description="InstaRaider")
     parser.add_argument('-u', '--user', help="Instagram username", required=True)
-    parser.add_argument('-c', '--count', help="# of photos to download", type=int)
     args = parser.parse_args()
     ready = False
 
@@ -210,18 +191,12 @@ if __name__ == '__main__':
         userName = args.user
         raider = instaRaider(userName)
 
-        if(raider.validUser(userName)):
+        if(raider.isValidUser(userName)):
             ready = True
             url = raider.profileUrl
         else:
             print "Username " + userName + " is not valid."
 
-    if (args.count):
-        if (args.count > raider.getImageCount(url)):
-            count = raider.getImageCount(url)
-        else:
-            count = args.count
-    else:
         count = raider.getImageCount(url)
 
     if(ready):
@@ -229,6 +204,4 @@ if __name__ == '__main__':
         source = raider.loadInstagram(url)
 
         # Download all photos identified on profile page
-        raider.getPhotos(source, userName, count)
-        
-        
+        raider.getPhotos(source, userName)

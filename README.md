@@ -1,17 +1,14 @@
 # InstaRaider
 ===========
-### Note
-Due to a recent re-design of the Instagram website, InstaRaider currently does not work. I do plan to fix the issues, but have not gotten around to it yet. Patience. 
-
 ---
 **DISCLAIMER:**
 
-This code is posted for informational purposes only. Use of Instagram is governed by the company's Terms of Use (http://instagram.com/legal/terms/). Any user content posted to Instagram is governed by the Privacy Policy (http://instagram.com/legal/privacy/). While I will make all attempts to ensure that InstaRaider works as described below, any future changes to Instragram may introduce errors. If you find a bug or notice that InstaRaider is not working, please feel free to email me at amirkurtovic@gmail.com
+This code is posted for informational purposes only. Use of Instagram is governed by the company's Terms of Use (http://instagram.com/legal/terms/). Any user content posted to Instagram is governed by the Privacy Policy (http://instagram.com/legal/privacy/). While I will make all attempts to ensure that InstaRaider works as described below, any future changes to Instragram may introduce errors. If you find a bug or notice that InstaRaider is not working, please create a New Issue on Github
 
 ---
 ### InstaRaider
-A Python script that uses Selenium WebDriver to automatically download photos for any Instagram user.
-InstaRaider can download all photos for any public Instagram profile without relying on API calls or user authentication. As long as the user's profile is public, InstaRaider will be able to download a specified number of photos.
+InstaRaider is a Instagram archiving tool that downloads all photos for any Instagram user.
+InstaRaider can download all photos for any public Instagram profile without relying on API calls or user authentication. 
 
 @amirkurtovic
 
@@ -31,15 +28,16 @@ sudo pip install -u selenium
 ```
 
 ### Useage
+The first time you use InstaRaider for a specific username, it will download all the photos on that user's profile.
+On subsequent uses, InstaRaider will only download new photos (unless you rename or remove the photos from the Images directory for that specific username). 
 ```python
-usage: instaRaider.py [-h] -u USER [-c COUNT]
+usage: instaRaider.py [-h] -u USERNAME
 ```
 
 ### Output:
 ```
-$ python instaRaider.py -u username -c 25
-username has 201 photos on Instagram.
-Loading Selenium WebDriver...
+$ python instaRaider.py -u username
+username has 25 posts on Instagram.
 Loading Instagram profile...
 ...........
 Raiding Instagram...
@@ -49,8 +47,9 @@ Photos saved so far:
      ---------10--------20--------30--------40--------50
 0    #########################
 ------
-Saved 25 images to ./Images/username/
+Saved 25 new images to ./Images/username/
+Saved activity in logfile: ./Images/username/username.csv
 ```
 
 ### License:
-Copyright (c) 2014 Amir Kurtovic. See the LICENSE file for license rights and limitations (MIT).
+Copyright (c) 2014-2015 Amir Kurtovic. See the LICENSE file for license rights and limitations (MIT).
