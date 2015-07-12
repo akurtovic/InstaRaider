@@ -35,8 +35,6 @@ class instaRaider(object):
         '''
         count = self.getImageCount(self.profileUrl)
         print self.userName + " has " + str(count) + " posts on Instagram."
-
-        print "Loading Selenium WebDriver..."
         
         # Load webdriver
         profile = webdriver.FirefoxProfile()
@@ -168,7 +166,6 @@ class instaRaider(object):
         # close logfile
         file.close()
         print "Saved activity in logfile: " + logfile
-    
     
     def __init__(self, userName):
         self.userName = userName
