@@ -9,7 +9,6 @@ usage: instaRaider.py [-h] -u USERNAME
 """
 import selenium.webdriver as webdriver
 import time
-from selenium.webdriver.support.ui import WebDriverWait
 import urllib2
 import urlparse
 import os
@@ -40,6 +39,8 @@ class instaRaider(object):
         profile = webdriver.FirefoxProfile()
         profile.set_preference("general.useragent.override", self.user_agent)
         driver = webdriver.Firefox(profile)
+        driver.set_window_size(480, 320)
+        driver.set_window_position(800, 0)
 
         print "Loading Instagram profile..."
         # load Instagram profile and wait for PAUSE 
@@ -52,7 +53,7 @@ class instaRaider(object):
         except:
             sys.exit("User profile is private. Aborting.")
 
-        scrollToBottom = (int(count)-24)/9+1
+        scrollToBottom = self.getScrollCount(count)
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     
         element = driver.find_element_by_css_selector(self.loadLabelCssSelector)
@@ -60,9 +61,7 @@ class instaRaider(object):
         element.click()
 
         for y in range(scrollToBottom):
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(0.2)
-            driver.execute_script("window.scrollTo(0, 0);")
+            self.scrollPage(driver)
      
         # After load all profile photos, retur source to getPhotos()
         time.sleep(1)
@@ -73,40 +72,58 @@ class instaRaider(object):
 
         return source
 
+    def scrollPage(self, driver):
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(0.2)
+        driver.execute_script("window.scrollTo(0, 0);")
+
+
+    def getScrollCount(self, count):
+        return (int(count)-24)/12+1
+
     def isValidUser(self, userName):
         '''
         returns True if Instagram username is valid
         '''
-        # check if Instagram username is valid
         req = urllib2.Request(self.profileUrl)
 
         try:
             urllib2.urlopen(req)
         except:
             return False
-        # if request doesn't fail, user profile exists
         return True
 
     def printProgressBar(self, directory):
-        print "\nRaiding Instagram..."
         print "Saving photos to " + directory
         print "------"
         print "Photos saved so far:"
         print "---------10--------20--------30--------40--------50"
 
-    def updateProgressBar(self, photosSaved, progressBar):
-        # print hash to progress bar
-        if (photosSaved == 50):
-            photosSaved = 1
-            progressBar += 50
-            sys.stdout.write('\n')
+    def updateProgressBar(self, photosSaved):
+        if (photosSaved % 50 == 0):
             sys.stdout.write('#')
+            sys.stdout.write('\n')
             sys.stdout.flush()
         
         else:
-            # increment progress bar
             sys.stdout.write('#')
             sys.stdout.flush()
+
+    def getLogfile(self, userName):
+        logfile = './Images/' + userName + '/' + userName + '.csv'
+        try:
+            file = open(logfile, "a")
+        except IOError:
+            print "\nError trying to open log file."
+
+        return file
+
+    def savePhoto(self, photoUrl, photoName):
+        imageRequest = urllib2.Request(photoUrl, headers=self.header)
+        imageData = urllib2.urlopen(imageRequest).read()
+        output = open(photoName,'wb')
+        output.write(imageData)
+        output.close()
 
     def getPhotos(self, source, userName):
         '''
@@ -123,24 +140,15 @@ class instaRaider(object):
             os.makedirs(directory)
         
         # logfile to store urls is csv format
-        logfile = './Images/' + userName + '/' + userName + '.csv'
-        try:
-            file = open(logfile, "a")
-        except IOError:
-            print "\nLog file does not exist."
-
-        # photo number for file names
-        photoNumber = 0
+        logfile = self.getLogfile(userName)
     
-        # indexes for progress bar
+        # index for progress bar
         photosSaved = 0
-        progressBar = 0
         self.printProgressBar(directory)
 
         links = re.findall(r'src="[https]+:...[\/\w \.-]*..[\/\w \.-]*..[\/\w \.-]*..[\/\w \.-].jpg', source)
 
         for x in links:
-            # increment photonumber for next image
             photoUrl = x[5:]
             photoUrl = photoUrl.replace('\\', '')
             split = urlparse.urlsplit(photoUrl)
@@ -148,24 +156,18 @@ class instaRaider(object):
 
             # save full-resolution photo if its new
             if not os.path.isfile(photoName):
-                photoNumber += 1
-                imageRequest = urllib2.Request(photoUrl, headers=self.header)
-                imageData = urllib2.urlopen(imageRequest).read()
-                output = open(photoName,'wb')
-                output.write(imageData)
-                output.close()
+                self.savePhoto(photoUrl, photoName)
                 photosSaved += 1
-                self.updateProgressBar(photosSaved, progressBar);
+                self.updateProgressBar(photosSaved);
             
             # save filename and url to CSV file
-            file.write(photoUrl + "," + photoName + "\n")
+            logfile.write(photoUrl + "," + photoName + "\n")
             
         print "\n------"
-        print "Saved " + str(photoNumber) + " new images to " + directory
+        print "Saved " + str(photosSaved) + " new images to " + directory
         
         # close logfile
-        file.close()
-        print "Saved activity in logfile: " + logfile
+        logfile.close()
     
     def __init__(self, userName):
         self.userName = userName
