@@ -53,15 +53,16 @@ class instaRaider(object):
         except:
             sys.exit("User profile is private. Aborting.")
 
-        scrollToBottom = self.getScrollCount(count)
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     
-        element = driver.find_element_by_css_selector(self.loadLabelCssSelector)
-        driver.implicitly_wait(self.PAUSE)
-        element.click()
+        if (int(count) > 24):
+            scrollToBottom = self.getScrollCount(count)
+            element = driver.find_element_by_css_selector(self.loadLabelCssSelector)
+            driver.implicitly_wait(self.PAUSE)
+            element.click()
 
-        for y in range(scrollToBottom):
-            self.scrollPage(driver)
+            for y in range(scrollToBottom):
+                self.scrollPage(driver)
      
         # After load all profile photos, retur source to getPhotos()
         time.sleep(1)
