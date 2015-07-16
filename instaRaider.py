@@ -195,13 +195,15 @@ if __name__ == '__main__':
             ready = True
             url = raider.profileUrl
         else:
-            print "Username " + userName + " is not valid."
+            print "User " + userName + " is not valid."
 
         count = raider.getImageCount(url)
 
-    if(ready):
+    if(ready == True and int(count) > 0):
         # Get source code from fully loaded Instagram profile page
         source = raider.loadInstagram(url)
 
         # Download all photos identified on profile page
         raider.getPhotos(source, userName)
+    else:
+        print "User " + userName + " has no photos to download."
