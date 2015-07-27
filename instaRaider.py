@@ -206,9 +206,9 @@ class InstaRaider(object):
             # save full-resolution photo if its new
             if not op.isfile(photo_name):
                 self.save_photo(photo_url, photo_name)
+                photos_saved += 1
                 self.log('Downloaded file {}/{} ({}).'.format(
                     photos_saved, num_to_download, op.basename(photo_name)))
-                photos_saved += 1
             else:
                 self.log('Skipping file', photo_name, 'as it already exists.')
 
