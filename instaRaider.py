@@ -7,15 +7,18 @@ usage: insta_raider.py [-h] -u USERNAME
 @amirkurtovic
 
 """
-from __future__ import print_function
 import argparse
+import logging
 import os
 import os.path as op
 import re
 import requests
 import time
 import selenium.webdriver as webdriver
-import logging
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions
+from selenium.common.exceptions import NoSuchElementException
 
 
 class PrivateUserError(Exception):
@@ -31,19 +34,24 @@ class InstaRaider(object):
 
     def __init__(self, username, directory, num_to_download=None,
                  log_level='info'):
-        self.log_level = getattr(logging, log_level.upper())
-        self.setup_logging(self.log_level)
         self.username = username
-        self.profile_url = 'http://instagram.com/{}/'.format(username)
+        self.profile_url = self.get_url(username)
         self.directory = directory
-        self.num_posts = self.get_posts_count(self.profile_url)
-        self.num_to_download = num_to_download or self.num_posts
         self.PAUSE = 1
-        self.postCount = "span.-cx-PRIVATE-PostsStatistic__count"
-        self.load_label_css_selector = "div.-cx-PRIVATE-AutoloadingPostsGrid__moreLoadingIndicator a"
         self.user_agent = 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'
         self.headers = {'User-Agent': self.user_agent}
         self.html_source = None
+        self.log_level = getattr(logging, log_level.upper())
+        self.setup_logging(self.log_level)
+        self.set_num_posts(num_to_download)
+        self.setup_webdriver()
+
+    def get_url(self, path):
+        return urlparse.urljoin('https://instagram.com', path)
+
+    def set_num_posts(self, num_to_download=None):
+        self.num_posts = int(self.get_posts_count(self.profile_url) or 0)
+        self.num_to_download = num_to_download
 
     def setup_logging(self, level=logging.INFO):
         self.logger = logging.getLogger('instaraider')
@@ -53,6 +61,13 @@ class InstaRaider(object):
     def log(self, *strings, **kwargs):
         level = kwargs.pop('level', logging.INFO)
         self.logger.log(level, u' '.join(str(s) for s in strings))
+
+    def setup_webdriver(self):
+        self.profile = webdriver.FirefoxProfile()
+        self.profile.set_preference("general.useragent.override", self.user_agent)
+        self.webdriver = webdriver.Firefox(self.profile)
+        self.webdriver.set_window_size(480, 320)
+        self.webdriver.set_window_position(800, 0)
 
     def get_posts_count(self, url):
         """
@@ -64,33 +79,55 @@ class InstaRaider(object):
             return None
         return re.findall(r'\d+', counts_code.group())[0]
 
+    def log_in_user(self):
+        driver = self.webdriver
+        self.log('You need to login to access this profile.',
+                 'Redirecting you to the login page in the browser.',
+                 level=logging.WARN)
+        driver.get(self.get_url('accounts/login/'))
+
+        # Wait until user has been successfully logged in and redirceted
+        # to his/her feed.
+        WebDriverWait(driver, 60).until(
+            expected_conditions.presence_of_element_located(
+                (By.CSS_SELECTOR, '.-cx-PRIVATE-FeedPage__feed'),
+            )
+        )
+
+        self.log('User successfully logged in.', level=logging.INFO)
+        self.set_num_posts()  # Have to set this again
+        driver.get(self.profile_url)
+
     def load_instagram(self):
         """
         Using Selenium WebDriver, load Instagram page to get page source
 
         """
         self.log(self.username, 'has', self.num_posts, 'posts on Instagram.')
-        if self.num_posts != self.num_to_download:
-            self.log("The first", self.num_to_download,
-                     "of them will be downloaded.")
+        if self.num_to_download is not None:
+            self.log("The first", self.num_to_download, "of them will be downloaded.")
 
-        # Load webdriver
-        profile = webdriver.FirefoxProfile()
-        profile.set_preference("general.useragent.override", self.user_agent)
-        driver = webdriver.Firefox(profile)
-        driver.set_window_size(480, 320)
-        driver.set_window_position(800, 0)
-
-        self.log("Loading Instagram profile...")
+        num_to_download = self.num_to_download or self.num_posts
+        driver = self.webdriver
         # load Instagram profile and wait for PAUSE
+        self.log("Loading Instagram profile...")
         driver.get(self.profile_url)
         driver.implicitly_wait(self.PAUSE)
 
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        try:
+            el = driver.find_element_by_css_selector(
+                '.-cx-PRIVATE-ProfilePage__advisoryMessageHeader'
+            )
+        except NoSuchElementException:
+            pass
+        else:
+            if el.text.lower() == 'this account is private':
+                self.log_in_user()
 
-        if (int(self.num_to_download) > 24):
-            scroll_to_bottom = self.get_scroll_count(self.num_to_download)
-            element = driver.find_element_by_css_selector(self.load_label_css_selector)
+        if (num_to_download > 24):
+            scroll_to_bottom = self.get_scroll_count(num_to_download)
+            element = driver.find_element_by_css_selector('div.-cx-PRIVATE-AutoloadingPostsGrid__moreLoadingIndicator a')
             driver.implicitly_wait(self.PAUSE)
             element.click()
 
@@ -127,10 +164,6 @@ class InstaRaider(object):
                      level=logging.ERROR)
             return False
 
-        if '"is_private":true' in req.text:
-            self.log("User profile is private.", level=logging.ERROR)
-            return False
-
         if not self.num_posts:
             self.log('User', self.username, 'has no photos to download.',
                      level=logging.ERROR)
@@ -150,7 +183,7 @@ class InstaRaider(object):
 
         source: HTML source code of Instagram profile papge
         """
-
+        num_to_download = self.num_to_download or self.num_posts
         if self.html_source is None:
             self.html_source = self.load_instagram()
 
@@ -173,17 +206,16 @@ class InstaRaider(object):
             # save full-resolution photo if its new
             if not op.isfile(photo_name):
                 self.save_photo(photo_url, photo_name)
+                self.log('Downloaded file {}/{} ({}).'.format(
+                    photos_saved, num_to_download, op.basename(photo_name)))
                 photos_saved += 1
-                self.log(photos_saved, 'out of', self.num_to_download, 'saved.')
-
-                self.log('Downloaded', photo_url, op.basename(photo_name))
             else:
-                self.log('File', photo_name, 'already exists.')
+                self.log('Skipping file', photo_name, 'as it already exists.')
 
-            if self.num_to_download and photos_saved >= self.num_to_download:
-                    break
+            if photos_saved >= num_to_download:
+                break
 
-        self.log('Saved', photos_saved, 'images to', self.directory)
+        self.log('Saved', photos_saved, 'files to', self.directory)
 
 
 def main():
