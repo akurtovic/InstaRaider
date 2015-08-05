@@ -13,6 +13,7 @@ import os
 import os.path as op
 import re
 import requests
+from requests.packages.urllib3.exceptions import InsecurePlatformWarning
 import time
 import warnings
 import selenium.webdriver as webdriver
@@ -21,6 +22,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import NoSuchElementException
 
+warnings.filterwarnings("ignore", category=InsecurePlatformWarning)
 
 class PrivateUserError(Exception):
     """Raised if the profile is found to be private"""
@@ -74,7 +76,6 @@ class InstaRaider(object):
         """
         Given a url to Instagram profile, return number of photos posted
         """
-        warnings.simplefilter("ignore")
         response = requests.get(url)
         counts_code = re.search(r'\"media":{"count":\d+', response.text)
         if not counts_code:
@@ -157,7 +158,6 @@ class InstaRaider(object):
         """
         returns True if Instagram username is valid
         """
-        warnings.simplefilter("ignore")
         req = requests.get(self.profile_url)
 
         try:
@@ -174,7 +174,6 @@ class InstaRaider(object):
         return True
 
     def save_photo(self, photo_url, photo_name):
-        warnings.simplefilter("ignore")
         image_request = requests.get(photo_url, headers=self.headers)
         image_data = image_request.content
         with open(photo_name, 'wb') as fp:
