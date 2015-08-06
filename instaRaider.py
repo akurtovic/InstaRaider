@@ -13,13 +13,16 @@ import os
 import os.path as op
 import re
 import requests
+from requests.packages.urllib3.exceptions import InsecurePlatformWarning
 import time
+import warnings
 import selenium.webdriver as webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import NoSuchElementException
 
+warnings.filterwarnings("ignore", category=InsecurePlatformWarning)
 
 class PrivateUserError(Exception):
     """Raised if the profile is found to be private"""
