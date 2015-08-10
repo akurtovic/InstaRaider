@@ -16,6 +16,7 @@ This ensures that all dependencies are satisfied on Ubuntu/Debian
     sudo apt-get update
     sudo apt-get install python-pip python git
     sudo pip install selenium
+    sudo pip install urllib3
     git clone https://github.com/akurtovic/InstaRaider
     cd InstaRaider
 Some older versions of selenium which come bundled with Ubuntu/Debian contain bugs. If InstaRaider fails due to selenium or firefox driver issues, update selenium with:
@@ -27,24 +28,21 @@ sudo pip install -u selenium
 The first time you use InstaRaider for a specific username, it will download all the photos on that user's profile.
 On subsequent uses, InstaRaider will only download new photos (unless you rename or remove the photos from the Images directory for that specific username). 
 ```python
-usage: instaRaider.py [-h] -u USERNAME
+usage: instaRaider.py [-h] [-n imageCount] USERNAME ./DIRECTORY/TO/SAVE/IMAGES
 ```
 
 ### Output:
 ```
-$ python instaRaider.py -u username
-username has 25 posts on Instagram.
+$ python instaRaider.py -n 100 username ./images/username
+username has 263 posts on Instagram.
+The first 100 of them will be downloaded.
 Loading Instagram profile...
-...........
-Raiding Instagram...
-Saving photos to ./Images/username/
-------
-Photos saved so far:
-     ---------10--------20--------30--------40--------50
-0    #########################
-------
-Saved 25 new images to ./Images/username/
-Saved activity in logfile: ./Images/username/username.csv
+Saving photos to ./images/username
+Downloaded file 1/100 (123.jpg).
+Downloaded file 2/100 (456.jpg).
+...
+Downloaded file 100/100 (789.jpg).
+Saved 100 files to ./images/username
 ```
 
 ### License:
