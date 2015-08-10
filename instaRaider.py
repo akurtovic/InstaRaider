@@ -13,7 +13,7 @@ import os
 import os.path as op
 import re
 import requests
-from requests.packages.urllib3.exceptions import InsecurePlatformWarning
+from urllib3.exceptions import InsecurePlatformWarning
 import time
 import warnings
 import selenium.webdriver as webdriver
