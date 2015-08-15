@@ -13,7 +13,10 @@ import os
 import os.path as op
 import re
 import requests
-from urllib3.exceptions import InsecurePlatformWarning
+try:
+    from requests.packages.urllib3.exceptions import InsecurePlatformWarning
+except ImportError:
+    from urllib3.exceptions import InsecurePlatformWarning
 import time
 import warnings
 import selenium.webdriver as webdriver

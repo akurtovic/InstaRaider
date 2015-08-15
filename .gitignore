@@ -1,4 +1,7 @@
 Images
 .DS_Store
 __pycache__/
+build
+dist
+instaraider.egg-info
 
