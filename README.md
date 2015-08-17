@@ -18,7 +18,7 @@ This ensures that all dependencies are satisfied on Ubuntu/Debian
 
     sudo apt-get update
     sudo apt-get install python-bs4 python-pip python git
-    sudo pip install selenium
+    sudo pip install selenium requests
     git clone https://github.com/akurtovic/InstaRaider
     cd InstaRaider
 
