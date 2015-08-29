@@ -13,7 +13,10 @@ import os
 import os.path as op
 import re
 import requests
-from urllib3.exceptions import InsecurePlatformWarning
+try:
+    from requests.packages.urllib3.exceptions import InsecurePlatformWarning
+except ImportError:
+    from urllib3.exceptions import InsecurePlatformWarning
 import time
 import warnings
 import selenium.webdriver as webdriver
@@ -21,6 +24,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import NoSuchElementException
+from httplib import BadStatusLine
 
 warnings.filterwarnings("ignore", category=InsecurePlatformWarning)
 
@@ -142,7 +146,7 @@ class InstaRaider(object):
         source = driver.page_source
 
         # close Firefox window
-        driver.close()
+        
 
         return source
 
@@ -220,6 +224,30 @@ class InstaRaider(object):
 
         self.log('Saved', photos_saved, 'files to', self.directory)
 
+    def download_videos(self):
+        num_to_download = self.num_to_download or self.num_posts
+        self.load_instagram()
+
+        if not op.exists(self.directory):
+            os.makedirs(self.directory)
+              
+        driver = self.webdriver
+        videos = driver.find_elements_by_xpath('.//*[@id="react-root"]/section/main/article/div/div[1]/div/a[.//*[@Class="-cx-PRIVATE-PostsGridItem__videoIndicatorWrapper"]]')
+        driver.implicitly_wait(2)
+        self.webdriver.close()
+        print(videos)
+        videos_links = [link.get_attribute("href") for link in videos]
+        driver2 = webdriver.Firefox()
+        try:
+            for video in videos_links:
+                driver2.get(video)
+                video_url = re.search(r'src="([https]+:...[\/\w \.-]*..[\/\w \.-]*..[\/\w \.-]*..[\/\w \.-]\.mp4)', driver2.page_source)
+                video_url = video_url.group(1)
+                split = urlparse.urlsplit(video_url)
+                video_name = op.join(self.directory, split.path.split("/")[-1])
+                self.save_photo(video_url, video_name)
+        except BadStatusLine:
+            pass
 
 def main():
     # parse arguments
@@ -240,8 +268,9 @@ def main():
     if not raider.validate():
         return
 
-    raider.download_photos()
-
+    # raider.download_photos()
+    raider.download_videos()
 
 if __name__ == '__main__':
     main()
+
