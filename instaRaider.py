@@ -128,8 +128,7 @@ class InstaRaider(object):
         except NoSuchElementException:
             pass
         else:
-            if el.text.lower() == 'this account is private':
-                self.log_in_user()
+            self.log_in_user()
 
         if (num_to_download > 24):
             scroll_to_bottom = self.get_scroll_count(num_to_download)
