@@ -12,7 +12,9 @@ import logging
 import os
 import os.path as op
 import re
+import email.utils as eut
 import requests
+import calendar
 try:
     from requests.packages.urllib3.exceptions import InsecurePlatformWarning
 except ImportError:
@@ -180,6 +182,10 @@ class InstaRaider(object):
         image_data = image_request.content
         with open(photo_name, 'wb') as fp:
             fp.write(image_data)
+
+        if "last-modified" in image_request.headers:
+            modtime = calendar.timegm(eut.parsedate(image_request.headers["last-modified"]))
+            os.utime(photo_name, (modtime, modtime))
 
     def download_photos(self):
         """
