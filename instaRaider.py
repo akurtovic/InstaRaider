@@ -205,6 +205,8 @@ class InstaRaider(object):
         for link in links:
             photo_url = link[5:]
             photo_url = photo_url.replace('\\', '')
+            photo_url = re.sub(r'/s\d+x\d+/', '/', photo_url)
+
             split = urlparse.urlsplit(photo_url)
             photo_name = op.join(self.directory, split.path.split("/")[-1])
 
