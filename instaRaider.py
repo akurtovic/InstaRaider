@@ -13,7 +13,9 @@ import logging
 import os
 import os.path as op
 import re
+import email.utils as eut
 import requests
+import calendar
 try:
     from requests.packages.urllib3.exceptions import InsecurePlatformWarning
 except ImportError:
@@ -129,8 +131,7 @@ class InstaRaider(object):
         except NoSuchElementException:
             pass
         else:
-            if el.text.lower() == 'this account is private':
-                self.log_in_user()
+            self.log_in_user()
 
         if (num_to_download > 24):
             scroll_to_bottom = self.get_scroll_count(num_to_download)
@@ -179,6 +180,10 @@ class InstaRaider(object):
         image_data = image_request.content
         with open(photo_name, 'wb') as fp:
             fp.write(image_data)
+
+        if "last-modified" in image_request.headers:
+            modtime = calendar.timegm(eut.parsedate(image_request.headers["last-modified"]))
+            os.utime(photo_name, (modtime, modtime))
 
     def download_photos(self):
         """
