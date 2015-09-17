@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+
+# !/usr/bin/env python
 """
 insta_raider.py
 
@@ -26,8 +27,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import NoSuchElementException
-
 warnings.filterwarnings("ignore", category=InsecurePlatformWarning)
+
 
 class PrivateUserError(Exception):
     """Raised if the profile is found to be private"""
@@ -145,9 +146,6 @@ class InstaRaider(object):
         time.sleep(1)
         source = driver.page_source
 
-        # close Firefox window
-        driver.close()
-
         return source
 
     def scroll_page(self, driver):
@@ -230,6 +228,31 @@ class InstaRaider(object):
 
         self.log('Saved', photos_saved, 'files to', self.directory)
 
+    def download_videos(self):
+        num_to_download = self.num_to_download or self.num_posts
+        if self.html_source is None:
+            self.html_source = self.load_instagram()
+        if not op.exists(self.directory):
+            os.makedirs(self.directory)
+        driver = self.webdriver
+        videos = driver.find_elements_by_xpath('.//*[@id="react-root"]/section/main/article/div/div[1]/div/a[.//*[@Class="-cx-PRIVATE-PostsGridItem__videoIndicatorWrapper"]]')
+        driver.implicitly_wait(2)
+        videos_links = [link.get_attribute("href") for link in videos]
+        for video in videos_links:
+            driver.get(video)
+            video_url = re.search(r'src="([https]+:...[\/\w \.-]*..[\/\w \.-]*..[\/\w \.-]*..[\/\w \.-]\.mp4)', driver.page_source)
+            video_url = video_url.group(1)
+            video_url = video_url.replace("\\", "")
+            split = urlparse.urlsplit(video_url)
+            video_name = op.join(self.directory, split.path.split("/")[-1])
+
+            self.save_photo(video_url, video_name)
+
+    def download_media(self):
+        self.download_photos()
+        self.download_videos()
+        self.webdriver.close()
+
 
 def main():
     # parse arguments
@@ -250,8 +273,7 @@ def main():
     if not raider.validate():
         return
 
-    raider.download_photos()
-
+    raider.download_media()
 
 if __name__ == '__main__':
     main()
