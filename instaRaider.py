@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-insta_raider.py  
+insta_raider.py
 
 usage: insta_raider.py [-h] -u USERNAME
 
