@@ -189,10 +189,7 @@ class InstaRaider(object):
         image_data = image_request.content
         with open(photo_name, 'wb') as fp:
             fp.write(image_data)
-
-        if "last-modified" in image_request.headers:
-            modtime = calendar.timegm(eut.parsedate(image_request.headers["last-modified"]))
-            os.utime(photo_name, (modtime, modtime))
+        return image_request.headers
 
     def download_photos(self):
         """
@@ -226,13 +223,16 @@ class InstaRaider(object):
 
             # save full-resolution photo if its new
             if not op.isfile(photo_name):
-                self.save_photo(photo_url, photo_name)
+                headers = self.save_photo(photo_url, photo_name)
                 photos_saved += 1
                 self.log('Downloaded file {}/{} ({}).'.format(
                     photos_saved, num_to_download, photo_basename))
                 # put info from Instagram post into image metadata
                 if self.use_metadata:
                     self.add_metadata(photo_name, caption, date_time)
+                if "last-modified" in headers:
+                    modtime = calendar.timegm(eut.parsedate(headers["last-modified"]))
+                    os.utime(photo_name, (modtime, modtime))
             else:
                 self.log('Skipping file', photo_name, 'as it already exists.')
 
