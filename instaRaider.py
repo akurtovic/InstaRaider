@@ -146,7 +146,7 @@ class InstaRaider(object):
 
         if (num_to_download > 24):
             scroll_to_bottom = self.get_scroll_count(num_to_download)
-            element = driver.find_element_by_css_selector('div.-cx-PRIVATE-AutoloadingPostsGrid__moreLoadingIndicator a')
+            element = driver.find_element_by_css_selector('div.o98')
             driver.implicitly_wait(self.PAUSE)
             element.click()
 
@@ -322,7 +322,7 @@ class InstaRaider(object):
         self.log("Saving videos to", self.directory)
         
         # Find all of the video wrappers
-        video_wrapper_elements = driver.find_elements_by_xpath('.//*[@id="react-root"]/section/main/article/div/div[1]/div/a[.//*[@Class="-cx-PRIVATE-PostsGridItem__videoIndicatorWrapper"]]')
+        video_wrapper_elements = driver.find_elements_by_xpath('.//*[@id="react-root"]/section/main/article/div/div[1]/div/a[.//*[@Class="w79 f99"]]')
         video_wrapper_urls = [link.get_attribute('href') for link in video_wrapper_elements]
         
         for video_wrapper in video_wrapper_urls:
@@ -332,12 +332,12 @@ class InstaRaider(object):
             # Wait until the real video appears
             WebDriverWait(driver, 60).until(
                 expected_conditions.presence_of_all_elements_located(
-                    (By.CLASS_NAME, '-cx-PRIVATE-DeclarativeVideo__video')
+                    (By.CLASS_NAME, 's68')
                 )
             )
 
             # Get the real video, since only 1 video can be clicked on at a time, we only expect there to be a single result
-            video_elements = driver.find_elements_by_class_name('-cx-PRIVATE-DeclarativeVideo__video')
+            video_elements = driver.find_elements_by_class_name('s68')
             if len(video_elements) > 0:
                 video_url = video_elements[0].get_attribute('src')
                 video_name = op.join(self.directory, video_url.split('/')[len(video_url.split('/')) - 1])
