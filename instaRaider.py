@@ -47,7 +47,7 @@ except ImportError:
 class InstaRaider(object):
 
     def __init__(self, username, directory, num_to_download=None,
-                 log_level='info', use_metadata=False):
+                 log_level='info', use_metadata=False, get_videos=False):
         self.username = username
         self.profile_url = self.get_url(username)
         self.directory = directory
@@ -58,9 +58,14 @@ class InstaRaider(object):
         self.log_level = getattr(logging, log_level.upper())
         self.setup_logging(self.log_level)
         self.use_metadata = use_metadata
+        self.get_videos = get_videos
         self.set_num_posts(num_to_download)
         self.setup_webdriver()
 
+    def __del__(self):
+        if self.webdriver:
+            self.webdriver.close()
+            
     def get_url(self, path):
         return urlparse.urljoin('https://instagram.com', path)
 
@@ -141,7 +146,7 @@ class InstaRaider(object):
 
         if (num_to_download > 24):
             scroll_to_bottom = self.get_scroll_count(num_to_download)
-            element = driver.find_element_by_css_selector('div.-cx-PRIVATE-AutoloadingPostsGrid__moreLoadingIndicator a')
+            element = driver.find_element_by_css_selector('div.o98')
             driver.implicitly_wait(self.PAUSE)
             element.click()
 
@@ -151,9 +156,6 @@ class InstaRaider(object):
         # After load all profile photos, retur, source to download_photos()
         time.sleep(1)
         source = driver.page_source
-
-        # close Firefox window
-        driver.close()
 
         return source
 
@@ -296,6 +298,63 @@ class InstaRaider(object):
                     photo['date_time'] = None
         return photos
 
+    def download_videos(self):
+        """
+        Given source code for loaded Instagram page:
+        - discover all video wrapper links
+        - activate all links to load video url
+        - extract and download video url
+        """
+        
+        if not self.get_videos:
+            return;
+            
+        # We need to use the driver to query the video wrappers
+        driver = self.webdriver
+        
+        num_to_download = self.num_to_download or self.num_posts
+        if self.html_source is None:
+            self.html_source = self.load_instagram()
+        if not op.exists(self.directory):
+            os.makedirs(self.directory)
+        
+        videos_saved = 0
+        self.log("Saving videos to", self.directory)
+        
+        # Find all of the video wrappers
+        video_wrapper_elements = driver.find_elements_by_xpath('.//*[@id="react-root"]/section/main/article/div/div[1]/div/a[.//*[@Class="w79 f99"]]')
+        video_wrapper_urls = [link.get_attribute('href') for link in video_wrapper_elements]
+        
+        for video_wrapper in video_wrapper_urls:
+            # Fetch the link of the video wrapper
+            driver.get(video_wrapper)
+
+            # Wait until the real video appears
+            WebDriverWait(driver, 60).until(
+                expected_conditions.presence_of_all_elements_located(
+                    (By.CLASS_NAME, 's68')
+                )
+            )
+
+            # Get the real video, since only 1 video can be clicked on at a time, we only expect there to be a single result
+            video_elements = driver.find_elements_by_class_name('s68')
+            if len(video_elements) > 0:
+                video_url = video_elements[0].get_attribute('src')
+                video_name = op.join(self.directory, video_url.split('/')[len(video_url.split('/')) - 1])
+                
+                if not op.isfile(video_name):
+                    self.save_photo(video_url, video_name)  
+                    videos_saved += 1
+                    self.log('Downloaded file {}/{} ({}).'.format(
+                        videos_saved, num_to_download, op.basename(video_name)))
+                else:
+                    self.log('Skipping file', video_name, 'as it already exists.')
+
+                if videos_saved >= num_to_download:
+                    break
+
+        self.log('Saved', videos_saved, 'videos to', self.directory)
+            
     def add_metadata(self, photo_name, caption, date_time):
         """
         Tag downloaded photos with metadata from associated Instagram post.
@@ -355,6 +414,9 @@ def main():
                               "post into downloaded images' exif tags "
                               "(requires GExiv2 python module)"),
                         action='store_true', dest='use_metadata')
+    parser.add_argument('-v', '--get_videos',
+                        help=("Download videos"),
+                        action='store_true', dest='get_videos')
     args = parser.parse_args()
     username = args.username
     directory = op.expanduser(args.directory)
@@ -362,12 +424,14 @@ def main():
     raider = InstaRaider(username, directory,
                          num_to_download=args.num_to_download,
                          log_level=args.log_level,
-                         use_metadata=args.use_metadata)
+                         use_metadata=args.use_metadata,
+                         get_videos=args.get_videos)
 
     if not raider.validate():
         return
 
     raider.download_photos()
+    raider.download_videos()
 
 
 if __name__ == '__main__':
