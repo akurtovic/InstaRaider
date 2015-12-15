@@ -218,6 +218,7 @@ class InstaRaider(object):
             photo_url = link['display_src']
             photo_url = photo_url.replace('\\', '')
             photo_url = re.sub(r'/s\d+x\d+/', '/', photo_url)
+            photo_url = re.sub(r'/\w+\.\d+\.\d+\.\d+/', '/', photo_url)
             caption = link.get('caption')
             date_time = link.get('date_time')
             photo_basename = op.basename(photo_url)
