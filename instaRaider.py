@@ -146,7 +146,7 @@ class InstaRaider(object):
 
         if (num_to_download > 24):
             scroll_to_bottom = self.get_scroll_count(num_to_download)
-            element = driver.find_element_by_css_selector('a.i09')
+            element = driver.find_element_by_css_selector('a._oidfu')
             driver.implicitly_wait(self.PAUSE)
             element.click()
 
@@ -262,30 +262,31 @@ class InstaRaider(object):
                 self.use_metadata = False
                 self.log('GExiv2 python module not found.',
                          'Images will not be tagged.')
-        try:
-            json_data = re.search(r'(?s)<script [^>]*>window\._sharedData'
-                                  r'.*?"nodes".+?</script>',
-                                  self.html_source)
-            json_data = re.search(r'{.+}', json_data.group(0))
-            json_data = json.loads(json_data.group(0))
-            photos = list(gen_dict_extract('nodes', json_data))[0]
-            # find profile_pic
-            profile_pic = list(gen_dict_extract('profile_pic_url', json_data))
-            if profile_pic:
-                # todo (possible):
-                #   add a key in the dict to indicate this is profile_pic.
-                #   then we could also name the file "profile.jpg" or similar
-                #   and also not include it in photos_saved so if user
-                #   uses -n N to download some number of images, he still gets
-                #   the first N images rather than N-1 images plus
-                #   profile_pic
-                profile_pic = [{'display_src': p} for p in profile_pic[:1]]
-                photos = profile_pic + photos
-        except:
-            if self.use_metadata:
-                self.use_metadata = False
-                self.log('Could not find any image metadata.',
-                         'Photos will not be tagged.')
+            try:
+                json_data = re.search(r'(?s)<script [^>]*>window\._sharedData'
+                                      r'.*?"nodes".+?</script>',
+                                      self.html_source)
+                json_data = re.search(r'{.+}', json_data.group(0))
+                json_data = json.loads(json_data.group(0))
+                photos = list(gen_dict_extract('nodes', json_data))[0]
+                # find profile_pic
+                profile_pic = list(gen_dict_extract('profile_pic_url', json_data))
+                if profile_pic:
+                    # todo (possible):
+                    #   add a key in the dict to indicate this is profile_pic.
+                    #   then we could also name the file "profile.jpg" or similar
+                    #   and also not include it in photos_saved so if user
+                    #   uses -n N to download some number of images, he still gets
+                    #   the first N images rather than N-1 images plus
+                    #   profile_pic
+                    profile_pic = [{'display_src': p} for p in profile_pic[:1]]
+                    photos = profile_pic + photos
+            except:
+                if self.use_metadata:
+                    self.use_metadata = False
+                    self.log('Could not find any image metadata.',
+                             'Photos will not be tagged.')
+        else:
             links = re.finditer(r'src="([https]+:...[\/\w \.-]*..[\/\w \.-]*'
                                 r'..[\/\w \.-]*..[\/\w \.-].jpg)',
                                 self.html_source)
