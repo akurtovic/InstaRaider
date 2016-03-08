@@ -47,7 +47,7 @@ Saved 100 files to ./images/username
 ```
 ### Multiprocessing performance
 After 3 independent tests ran on the same machine, for a profile with 565 posts, the script took the following time to run depending on the number of processes ran:
-![Comparison Graph](http://thumbnails105.imagebam.com/47048/ac20ba470478288.jpg "Comparison graph")
+<a href="http://www.imagebam.com/image/ac20ba470493435" target="_blank"><img src="http://thumbnails113.imagebam.com/47050/ac20ba470493435.jpg" alt="imagebam.com"></a> 
 
 ### License:
 Copyright (c) 2014-2015 Amir Kurtovic. See the LICENSE file for license rights and limitations (MIT).
