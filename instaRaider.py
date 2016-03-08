@@ -232,7 +232,6 @@ class InstaRaider(object):
         self.log("Saving photos to", self.directory)
 
         links = self.find_links()
-        print(links)
 
         downloaders = []
 
