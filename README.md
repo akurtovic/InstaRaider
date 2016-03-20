@@ -25,7 +25,7 @@ Some older versions of selenium which come bundled with Ubuntu/Debian contain bu
 sudo pip install -u selenium
 ```
 
-### Useage
+### Usage
 The first time you use InstaRaider for a specific username, it will download all the photos on that user's profile.
 On subsequent uses, InstaRaider will only download new photos (unless you rename or remove the photos from the Images directory for that specific username). 
 ```python
