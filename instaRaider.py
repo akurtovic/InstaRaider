@@ -28,12 +28,16 @@ from selenium.webdriver.support import expected_conditions
 from selenium.common.exceptions import NoSuchElementException
 import json
 from datetime import datetime
+from multiprocessing import Process
 try:
     from gi.repository import GExiv2
 except ImportError:
     GExiv2 = None
 
 warnings.filterwarnings("ignore", category=InsecurePlatformWarning)
+
+
+
 
 class PrivateUserError(Exception):
     """Raised if the profile is found to be private"""
@@ -43,11 +47,31 @@ try:
 except ImportError:
     import urllib.parse as urlparse
 
+class MultiDownloader(Process):
+
+    def __init__(self, link, headers, name):
+        super().__init__()
+        self.link = link
+        self.headers = headers
+        self.photo_name = name
+
+    def run(self):
+        image_request = requests.get(self.link, headers=self.headers)
+        image_data = image_request.content
+        with open(self.photo_name, 'wb') as fp:
+            fp.write(image_data)
+        self.headers = image_request.headers
+        if "last-modified" in self.headers:
+            modtime = calendar.timegm(eut.parsedate(self.headers["last-modified"]))
+            os.utime(self.photo_name, (modtime, modtime))
+        
+
 
 class InstaRaider(object):
 
     def __init__(self, username, directory, num_to_download=None,
-                 log_level='info', use_metadata=False, get_videos=False):
+                 log_level='info', use_metadata=False, get_videos=False,
+                 process_number=100):
         self.username = username
         self.profile_url = self.get_url(username)
         self.directory = directory
@@ -61,11 +85,12 @@ class InstaRaider(object):
         self.get_videos = get_videos
         self.set_num_posts(num_to_download)
         self.setup_webdriver()
+        self.process_number = process_number
 
     def __del__(self):
         if self.webdriver:
             self.webdriver.close()
-            
+
     def get_url(self, path):
         return urlparse.urljoin('https://instagram.com', path)
 
@@ -161,8 +186,9 @@ class InstaRaider(object):
 
     def scroll_page(self, driver):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(0.2)
+        time.sleep(0.05)
         driver.execute_script("window.scrollTo(0, 0);")
+        time.sleep(0.05)
 
     def get_scroll_count(self, count):
         return (int(count) - 24) / 12 + 1
@@ -186,13 +212,6 @@ class InstaRaider(object):
             return False
         return True
 
-    def save_photo(self, photo_url, photo_name):
-        image_request = requests.get(photo_url, headers=self.headers)
-        image_data = image_request.content
-        with open(photo_name, 'wb') as fp:
-            fp.write(image_data)
-        return image_request.headers
-
     def download_photos(self):
         """
         Given source code for loaded Instagram page,
@@ -214,6 +233,8 @@ class InstaRaider(object):
 
         links = self.find_links()
 
+        downloaders = []
+
         for link in links:
             photo_url = link['display_src']
             photo_url = photo_url.replace('\\', '')
@@ -226,21 +247,31 @@ class InstaRaider(object):
 
             # save full-resolution photo if its new
             if not op.isfile(photo_name):
-                headers = self.save_photo(photo_url, photo_name)
+                if len(downloaders) > self.process_number:
+                    downloaders.pop(0).join()
+
+
+                downloader = MultiDownloader(photo_url, self.headers, photo_name)
+                downloaders.append(downloader)
+                downloader.start()
+
                 photos_saved += 1
                 self.log('Downloaded file {}/{} ({}).'.format(
                     photos_saved, num_to_download, photo_basename))
                 # put info from Instagram post into image metadata
                 if self.use_metadata:
                     self.add_metadata(photo_name, caption, date_time)
-                if "last-modified" in headers:
-                    modtime = calendar.timegm(eut.parsedate(headers["last-modified"]))
-                    os.utime(photo_name, (modtime, modtime))
+
             else:
                 self.log('Skipping file', photo_name, 'as it already exists.')
 
             if photos_saved >= num_to_download:
                 break
+
+        for downloader in downloaders:
+            name = downloader.name
+            headers = downloader.join()
+
 
         self.log('Saved', photos_saved, 'files to', self.directory)
 
@@ -307,26 +338,28 @@ class InstaRaider(object):
         - activate all links to load video url
         - extract and download video url
         """
-        
+
         if not self.get_videos:
             return;
-            
+
         # We need to use the driver to query the video wrappers
         driver = self.webdriver
-        
+
         num_to_download = self.num_to_download or self.num_posts
         if self.html_source is None:
             self.html_source = self.load_instagram()
         if not op.exists(self.directory):
             os.makedirs(self.directory)
-        
+
         videos_saved = 0
         self.log("Saving videos to", self.directory)
-        
+
         # Find all of the video wrappers
         video_wrapper_elements = driver.find_elements_by_xpath('.//*[@id="react-root"]/section/main/article/div/div[1]/div/a[.//*[@Class="w79 f99"]]')
         video_wrapper_urls = [link.get_attribute('href') for link in video_wrapper_elements]
-        
+
+        downloaders = []
+
         for video_wrapper in video_wrapper_urls:
             # Fetch the link of the video wrapper
             driver.get(video_wrapper)
@@ -343,9 +376,12 @@ class InstaRaider(object):
             if len(video_elements) > 0:
                 video_url = video_elements[0].get_attribute('src')
                 video_name = op.join(self.directory, video_url.split('/')[len(video_url.split('/')) - 1])
-                
+
                 if not op.isfile(video_name):
-                    self.save_photo(video_url, video_name)  
+                    if len(downloaders) > self.process_number:
+                        downloaders.pop(0).join()
+                    downloaders.append(MultiDownloader(video_url, self.headers, video_name))
+                    #self.save_photo(video_url, video_name)
                     videos_saved += 1
                     self.log('Downloaded file {}/{} ({}).'.format(
                         videos_saved, num_to_download, op.basename(video_name)))
@@ -355,8 +391,11 @@ class InstaRaider(object):
                 if videos_saved >= num_to_download:
                     break
 
+        for downloader in downloaders:
+            downloader.join()
+
         self.log('Saved', videos_saved, 'videos to', self.directory)
-            
+
     def add_metadata(self, photo_name, caption, date_time):
         """
         Tag downloaded photos with metadata from associated Instagram post.
@@ -419,6 +458,10 @@ def main():
     parser.add_argument('-v', '--get_videos',
                         help=("Download videos"),
                         action='store_true', dest='get_videos')
+    parser.add_argument('-p', '--process',
+                        help=("Number of concurrent processes to use"),
+                        action='store', dest='process_number',
+                        type=int, default=100)
     args = parser.parse_args()
     username = args.username
     directory = op.expanduser(args.directory)
@@ -427,7 +470,8 @@ def main():
                          num_to_download=args.num_to_download,
                          log_level=args.log_level,
                          use_metadata=args.use_metadata,
-                         get_videos=args.get_videos)
+                         get_videos=args.get_videos,
+                         process_number=args.process_number)
 
     if not raider.validate():
         return

@@ -25,7 +25,7 @@ Some older versions of selenium which come bundled with Ubuntu/Debian contain bu
 sudo pip install -u selenium
 ```
 
-### Useage
+### Usage
 The first time you use InstaRaider for a specific username, it will download all the photos on that user's profile.
 On subsequent uses, InstaRaider will only download new photos (unless you rename or remove the photos from the Images directory for that specific username). 
 ```python
@@ -45,6 +45,10 @@ Downloaded file 2/100 (456.jpg).
 Downloaded file 100/100 (789.jpg).
 Saved 100 files to ./images/username
 ```
+### Multiprocessing performance
+After 3 independent tests ran on the same machine, for a profile with 565 posts, the script took the following time to run depending on the number of processes ran:
+
+<a href="http://www.imagebam.com/image/ac20ba470493435" target="_blank"><img src="http://thumbnails113.imagebam.com/47050/ac20ba470493435.jpg" alt="imagebam.com"></a> 
 
 ### License:
 Copyright (c) 2014-2015 Amir Kurtovic. See the LICENSE file for license rights and limitations (MIT).
