@@ -50,7 +50,7 @@ except ImportError:
 class MultiDownloader(Process):
 
     def __init__(self, link, headers, name):
-        super().__init__()
+        super(MultiDownloader, self).__init__()
         self.link = link
         self.headers = headers
         self.photo_name = name
