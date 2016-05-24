@@ -119,7 +119,7 @@ class InstaRaider(object):
         Given a url to Instagram profile, return number of photos posted
         """
         response = requests.get(url)
-        counts_code = re.search(r'\"media":{"count":\d+', response.text)
+        counts_code = re.search(r'\"media":\s*{"count":\s*\d+', response.text)
         if not counts_code:
             return None
         return re.findall(r'\d+', counts_code.group())[0]
