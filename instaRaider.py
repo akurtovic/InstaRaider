@@ -64,7 +64,7 @@ class MultiDownloader(Process):
         if "last-modified" in self.headers:
             modtime = calendar.timegm(eut.parsedate(self.headers["last-modified"]))
             os.utime(self.photo_name, (modtime, modtime))
-        
+
 
 
 class InstaRaider(object):
@@ -345,7 +345,6 @@ class InstaRaider(object):
         # We need to use the driver to query the video wrappers
         driver = self.webdriver
 
-        num_to_download = self.num_to_download or self.num_posts
         if self.html_source is None:
             self.html_source = self.load_instagram()
         if not op.exists(self.directory):
@@ -355,8 +354,9 @@ class InstaRaider(object):
         self.log("Saving videos to", self.directory)
 
         # Find all of the video wrappers
-        video_wrapper_elements = driver.find_elements_by_xpath('.//*[@id="react-root"]/section/main/article/div/div[1]/div/a[.//*[@Class="w79 f99"]]')
+        video_wrapper_elements = driver.find_elements_by_xpath('.//*[@id="react-root"]/section/main/article/div/div[1]/div/a[.//*[@Class="_1lp5e"]]')
         video_wrapper_urls = [link.get_attribute('href') for link in video_wrapper_elements]
+        num_to_download = len(video_wrapper_urls)
 
         downloaders = []
 
@@ -364,35 +364,31 @@ class InstaRaider(object):
             # Fetch the link of the video wrapper
             driver.get(video_wrapper)
 
-            # Wait until the real video appears
-            WebDriverWait(driver, 60).until(
-                expected_conditions.presence_of_all_elements_located(
-                    (By.CLASS_NAME, 's68')
-                )
-            )
+            response = requests.get(video_wrapper)
+            video_url = re.search(r'[https]+:...[\/\w \.-]*..[\/\w \.-]*'r'..[\/\w \.-]*..[\/\w \.-].mp4', response.text).group()
 
-            # Get the real video, since only 1 video can be clicked on at a time, we only expect there to be a single result
-            video_elements = driver.find_elements_by_class_name('s68')
-            if len(video_elements) > 0:
-                video_url = video_elements[0].get_attribute('src')
-                video_name = op.join(self.directory, video_url.split('/')[len(video_url.split('/')) - 1])
+            video_name = op.join(self.directory, video_url.split('/')[len(video_url.split('/')) - 1])
 
-                if not op.isfile(video_name):
-                    if len(downloaders) > self.process_number:
-                        downloaders.pop(0).join()
-                    downloaders.append(MultiDownloader(video_url, self.headers, video_name))
-                    #self.save_photo(video_url, video_name)
-                    videos_saved += 1
-                    self.log('Downloaded file {}/{} ({}).'.format(
-                        videos_saved, num_to_download, op.basename(video_name)))
-                else:
-                    self.log('Skipping file', video_name, 'as it already exists.')
+            if not op.isfile(video_name):
+                if len(downloaders) > self.process_number:
+                    downloaders.pop(0).join()
 
-                if videos_saved >= num_to_download:
-                    break
+                downloader = MultiDownloader(video_url, self.headers, video_name)
+                downloaders.append(downloader)
+                downloader.start()
+
+                videos_saved += 1
+                self.log('Downloaded file {}/{} ({}).'.format(
+                    videos_saved, num_to_download, op.basename(video_name)))
+            else:
+                self.log('Skipping file', video_name, 'as it already exists.')
+
+            if videos_saved >= num_to_download:
+                break
 
         for downloader in downloaders:
-            downloader.join()
+            name = downloader.name
+            headers = downloader.join()
 
         self.log('Saved', videos_saved, 'videos to', self.directory)
 
