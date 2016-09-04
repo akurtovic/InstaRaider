@@ -26,7 +26,7 @@ This ensures that all dependencies are satisfied on Ubuntu/Debian
     cd InstaRaider
 Some older versions of selenium which come bundled with Ubuntu/Debian contain bugs. If InstaRaider fails due to selenium or firefox driver issues, update selenium with:
 ```
-sudo pip install -u selenium
+sudo pip install -U selenium
 ```
 
 ### Usage
