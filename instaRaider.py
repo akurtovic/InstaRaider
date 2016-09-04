@@ -169,14 +169,16 @@ class InstaRaider(object):
         else:
             self.log_in_user()
 
-        if (num_to_download > 24):
+        if (num_to_download > 12):
             scroll_to_bottom = self.get_scroll_count(num_to_download)
             element = driver.find_element_by_css_selector('a._oidfu')
-            driver.implicitly_wait(self.PAUSE)
+            # driver.implicitly_wait(self.PAUSE)
+            time.sleep(0.5)
             element.click()
 
             for y in range(int(scroll_to_bottom)):
                 self.scroll_page(driver)
+                # self.click_load_more(driver)
 
         # After load all profile photos, retur, source to download_photos()
         time.sleep(1)
@@ -190,8 +192,12 @@ class InstaRaider(object):
         driver.execute_script("window.scrollTo(0, 0);")
         time.sleep(0.05)
 
+    def click_load_more(self, driver):
+    	load_more_button = driver.find_elements_by_xpath(".//*[@id='react-root']/section/main/article/div/div[3]/a")
+    	load_more_button[0].click()
+
     def get_scroll_count(self, count):
-        return (int(count) - 24) / 12 + 1
+        return (int(count) - 12) / 12 + 1
 
     def validate(self):
         """
