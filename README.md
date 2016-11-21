@@ -2,6 +2,9 @@
 ===========
 **NOTE ABOUT FUTURE MAINTENANCE:**
 
+**11-21-2016:** This project is no longer maintained. For an up-to-date solution please check out:
+https://github.com/althonos/instaLooter
+
 **5-27-2016:** I started this project more than two years ago because I simply needed a quick script to download all of my Instagram photos. Since then it's been cloned thousands of times and used for awesome stuff like quickly gathering lots of images to train machine learning algorithms and probably not-so-awesome stuff like downloading Instagram model pictures. I'm glad that people have found it useful and have forked InstaRaider and contributed over that time, however, I don't have the time or the interest in continuing to maintain this project. As with any web scrapping application, stuff is bound to change and break over time. I will still accept pull requests that fix any major issues, but if somebody else is interested in taking over this project please let me know. I have opened an issue (https://github.com/akurtovic/InstaRaider/issues/65) to be used for disucssion.
 
 ---
